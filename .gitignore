@@ -22,3 +22,6 @@ data/raw/*
 # Son configuraciones locales del desarrollador y no pertenecen al proyecto.
 .vscode/
 .idea/
+
+# Carpeta docs de momento no se sube
+docs/

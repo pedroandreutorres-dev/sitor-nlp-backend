@@ -111,9 +111,6 @@ SITOR/
 ├── data/
 │   ├── raw/                 # Dataset base (Multilingual Customer Support Tickets)
 │   └── processed/           # Datos limpios, normalizados y divididos (Train/Val/Test)
-├── docs/
-│   ├── Propuesta_PFM_SITOR_v3.md   # Documento de alcance y fundamentación v3
-│   └── prompt_gem_sitor_v2.md      # Guía y configuración del mentor de PFM v2
 ├── notebook/
 │   └──                      # Notebooks exploratorios (EDA, comparativas de modelos, calibración)
 ├── src/
