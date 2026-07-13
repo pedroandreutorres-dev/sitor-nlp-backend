@@ -1,0 +1,24 @@
+# Entornos virtuales
+# Ignora el directorio del entorno virtual para evitar subir paquetes y binarios específicos de la máquina.
+.venv/
+venv/
+
+# Archivos de caché y compilados de Python
+# Estos archivos se generan automáticamente y no deben estar en el control de versiones.
+__pycache__/
+*.pyc
+
+# Datos
+# Ignora el contenido de los datos brutos, que se obtendrán de fuentes externas (ej. Kaggle).
+# La excepión !.gitkeep asegura que el directorio vacío sí sea rastreado por Git.
+data/raw/*
+!data/raw/.gitkeep
+
+# Archivos de configuración de entorno y secretos
+# Contienen información sensible (API keys, contraseñas) que NUNCA debe estar en el repositorio.
+.env*
+
+# Configuraciones de IDE y editores
+# Son configuraciones locales del desarrollador y no pertenecen al proyecto.
+.vscode/
+.idea/
