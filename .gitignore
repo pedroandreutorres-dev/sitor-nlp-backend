@@ -23,5 +23,7 @@ data/raw/*
 .vscode/
 .idea/
 
-# Carpeta docs de momento no se sube
-docs/
+# Ignorar el contenido general de la carpeta docs, pero...
+docs/*
+# ...permitir explícitamente que se suba la subcarpeta de documentación oficial para el profesor
+!docs/entregas/
