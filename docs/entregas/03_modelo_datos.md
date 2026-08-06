@@ -88,7 +88,7 @@ La capa *Gold* estará compuesta por dos datasets físicos segregados idiomátic
 
 ## 7. Problemas de calidad esperados (Según EDA previo)
 
-A través de la auditoría de los tres datasets crudos (`df_01`, `df_02`, `df_03`), se han aterrizado los siguientes problemas concretos de calidad:
+A través de la auditoría de los tres archivos CSV originales descargados de Kaggle, se han aterrizado los siguientes problemas concretos de calidad:
 1. **Valores nulos críticos:** Existen tickets sin cuerpo de texto (`body`), lo que imposibilita el cálculo de TF-IDF y el análisis léxico.
 2. **Alta dispersión y ruido sintético:** Presencia de etiquetas categóricas masivas vacías (`tag_1` a `tag_9`), variables sintéticas inútiles (`version`), columnas intrusas que no aparecen en todos los ficheros (`business_type`), e información post-resolución no predictiva (`answer`).
 3. **Casuística fuera de dominio:** Existen registros pertenecientes a Recursos Humanos, Retail o Consultas Genéricas que "ensucian" las fronteras de decisión de un modelo orientado a Telecomunicaciones/IT.
@@ -118,7 +118,7 @@ El *pipeline* de procesamiento hacia la capa Gold ejecutará secuencialmente las
 
 * **¿Qué parte está más clara?** La estructura final de la tabla desnormalizada. Al acotarlo estrictamente a las variables de la tripleta y los textos limpios (`full_text_clean`), purificando el dataset de "peso muerto" como el `answer`, el modelo de datos es inmutable y encaja a la perfección con la librería Scikit-Learn.
 * **¿Qué parte genera más incertidumbre?** La "limpieza semántica" en la construcción de `full_text_clean`. Aunque la estructura sea robusta, es probable que la lematización de spaCy arrastre solapamiento semántico (Concept Drift) o pierda matices técnicos cruciales para el dominio de las telecomunicaciones (especialmente en la traducción al español).
-* **¿Qué tabla/fichero puede dar más problemas?** El `df_03` crudo, al ser el archivo con mayores anomalías estructurales detectadas.
+* **¿Qué tabla/fichero puede dar más problemas?** El tercer archivo CSV crudo (`dataset-tickets-multi-lang3-4k.csv`), al ser el fichero con mayores anomalías estructurales detectadas.
 * **¿Qué ocurriría si no se puede construir la capa gold definida?** Si el procesamiento NLP de spaCy sobre todo el volumen excede los límites de memoria, la construcción de `full_text_clean` fracasará. El riesgo está mitigado parametrizando la limpieza por *batches*.
 * **Riesgo crítico de la Arquitectura en Cascada:** Al contar con un corpus base en inglés acotado (~16.000 tickets útiles), existe el riesgo de que el volumen sea insuficiente para sostener 3 niveles de predicción encadenada, provocando escasez crítica de muestras en las clases profundas. Para mitigarlo:
   * Se aplicarán técnicas de sobremuestreo sintético como **SMOTE** (*Synthetic Minority Over-sampling Technique*) tras la vectorización.
