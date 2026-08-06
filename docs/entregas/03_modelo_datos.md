@@ -24,7 +24,7 @@ El repositorio seguirá una arquitectura de datos secuencial orientada a MLOps:
 
 ```text
 data/
-|-- raw/       # Contiene los 3 ficheros CSV originales (df_01, df_02, df_03).
+|-- raw/       # Contiene los 3 ficheros CSV originales descargados de Kaggle.
 |-- processed/ # Archivos temporales (limpieza intermedia y unificación).
 `-- gold/      # Datasets finales segregados para el Test A/B de idioma.
     |-- gold_tickets_en.parquet
@@ -33,7 +33,7 @@ data/
 
 | Capa | Contenido esperado |
 | :--- | :--- |
-| **Raw** | Ficheros originales descargados de Kaggle (`df_01`, `df_02`, `df_03`). Intocables, sin limpieza, con ruido de sistema y datos fuera del dominio BPO. |
+| **Raw** | Ficheros originales descargados de Kaggle (`dataset-tickets-multi-lang3-4k.csv`, `dataset-tickets-multi-lang-4-20k.csv`, `aa_dataset-tickets-multi-lang-5-2-50-version.csv`). Intocables, sin limpieza, con ruido de sistema y datos fuera del dominio BPO. |
 | **Processed** | Fragmentos limpios y unificados, con el índice reseteado, justo antes de ejecutar el pipeline intensivo de NLP (lematización). |
 | **Gold** | Artefactos de consumo directo para los algoritmos. Son dos ficheros segregados (Inglés y Español) que contienen los textos originales, el texto predictivo limpio (`full_text_clean`), un ID trazable y filtrados por dominio de negocio (Telco). |
 
@@ -105,7 +105,7 @@ El *pipeline* de procesamiento hacia la capa Gold ejecutará secuencialmente las
   * Imputación estática: Los nulos de la columna `subject` se rellenarán con la cadena `"No Subject"`.
   * Borrado de filas (Dropna): Cualquier registro con nulos en `body` será eliminado de la base de datos (se revoca la regla anterior de borrar nulos en `answer`, recuperando así datos valiosos de entrenamiento). *(Nota de desarrollo: Dado que los nulos de answer ya fueron borrados en la fase de EDA, la re-ejecución del notebook 01 para regenerar la capa Silver sin este borrado queda pendiente de programar).*
 * **Filtros de Dominio BPO/Telco:**
-  * Se aplicará una máscara para eliminar los tickets cuyas colas (`queue`) sean `Human Resources`, `Returns and Exchanges` o `General Inquiry`. 
+  * Se eliminan los tickets cuyas colas (`queue`) sean `Human Resources`, `Returns and Exchanges` o `General Inquiry`. 
 * **Ingeniería de Características (*Feature Engineering*):**
   * **`ticket_id`:** Creación de una clave primaria alfanumérica única tras la concatenación y el reseteo del índice. *(Nota de desarrollo: Pendiente de programar).*
   * **`full_text_clean`:** Ejecución intensiva de un *pipeline* de NLP mediante la librería `spaCy` sobre la concatenación previa de Asunto y Cuerpo (reducción a minúsculas, eliminación de puntuación, filtrado de *stopwords* y extracción de lemas). *(Nota de desarrollo: Pendiente de programar).*
