@@ -1,0 +1,4 @@
+exp_id,target_level,vectorization,model,balancing,train_time_sec,inference_time_ms,f1_macro,f1_minority_class,hyperparameters
+ES_L1_TFIDF_MNB_NONE,queue,tfidf,mnb,none,0.0425,2.42,0.3088,0.087,baseline default
+ES_L1_TFIDF_LOGREG_NONE,queue,tfidf,logreg,none,2.6192,1.92,0.4522,0.5066,max_iter=1000
+ES_L1_TFIDF_LOGREG_SMOTE,queue,tfidf,logreg,smote,5.7504,2.17,0.5007,0.5938,max_iter=1000

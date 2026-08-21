@@ -2,105 +2,64 @@
 
 > **Proyecto de Fin de Máster (PFM)**  
 > **Máster en Data Science & IA** — *Evolve Academy*  
-> **Versión del Alcance:** v2 (Enfoque en MVP modular y riguroso)
+> **Versión del Alcance:** v3 (Enfoque en Experimentación Dual y MVP)
 
 ---
 
-## 📌 1. Descripción y Contexto del Proyecto
+## 📌 1. Descripción y Contexto de Negocio
 
-En el sector de *Business Process Outsourcing* (BPO) y en las operaciones de soporte de las grandes compañías de telecomunicaciones, la correcta clasificación inicial de las incidencias en el Front Office (Nivel 1) es crítica. Los agentes operan bajo estrictas métricas de **Tiempo Medio de Operación (TMO)**, lo que, sumado a la ambigüedad del lenguaje en el texto libre del cliente, genera errores frecuentes al asignar la **"tripleta" del CRM** (*Tipo / Subtipo / Detalle* o departamento/cola de destino).
+En el sector BPO y soporte técnico de telecomunicaciones, la clasificación inicial de incidencias en el Nivel 1 (Front Office) es crítica. El lenguaje libre y ambiguo del cliente provoca errores humanos frecuentes al asignar la cola de destino en el CRM. Un error genera un **falso escalado** hacia el Nivel 2, consumiendo recursos costosos, disparando el AHT (Average Handling Time) y frustrando al cliente.
 
-Un error en esta asignación provoca un **falso escalado** hacia el Back Office (Nivel 2) o al departamento equivocado. Esto consume recursos técnicos costosos en investigar, reasignar y devolver el ticket a la cola correcta, disparando el **Tiempo Medio de Resolución (AHT)** y reduciendo la satisfacción del cliente.
-
-**SITOR** nace para resolver este problema mediante la combinación de **Procesamiento de Lenguaje Natural (NLP)** y **Arquitecturas MLOps/RAG**. El sistema actúa como un **auditor inteligente e interceptor en tiempo real**: analiza el texto del ticket y la tipificación seleccionada por el CRM para verificar si la asignación es correcta o, en caso de discrepancia, recomendar la tipificación adecuada antes de que el ticket sea enrutado erróneamente.
+**SITOR** nace para resolver este problema. Mediante **Procesamiento de Lenguaje Natural (NLP)** y **Machine Learning**, el sistema analiza el texto del ticket y actúa como un **interceptor en tiempo real**, auditando la decisión del agente y corrigiendo falsos escalados antes de que ocurran, con foco especial en detectar averías masivas críticas (*Service Outages*).
 
 ---
 
-## 🎯 2. Alcance Modular: Núcleo Entregable y Extensión
+## 🔬 2. Metodología "Dual-Track" (Inglés vs Español)
 
-Para garantizar la máxima solvencia técnica, rigor académico y viabilidad de ejecución en el calendario del TFM, el proyecto adopta una estructura modular estrictamente priorizada en dos niveles:
+Debido al bajo volumen de tickets nativos en español, el proyecto ha adoptado una estrategia de experimentación paralela (**A/B Testing de Idiomas**) para construir una matriz de Coste/Beneficio empresarial:
 
-```mermaid
-flowchart TD
-    subgraph MVP [NÚCLEO ENTREGABLE - MVP INNEGOCIABLE]
-        A[1. Motor de Clasificación Jerárquica<br>NLP & Machine Learning]
-        B[2. Microservicio de Auditoría<br>FastAPI & Verificación JSON]
-        C[3. Plan de Evaluación Rigurosa<br>Métricas Reales por Clase]
-        A --> B
-        A --> C
-    end
-
-    subgraph EXT [EXTENSIÓN OPCIONAL - SI EL TIEMPO LO PERMITE]
-        D[4. Copiloto RAG<br>Búsqueda Semántica de Soluciones]
-        E[5. Dashboard Técnico<br>Monitorización y KPIs de Modelo]
-        B -.- D
-        C -.- E
-    end
-
-    style MVP fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#fff
-    style EXT fill:#1e293b,stroke:#a855f7,stroke-width:2px,stroke-dasharray: 5 5,color:#fff
-```
+1. **Vía Inglesa (Nativa):** ~16.000 tickets procesados directamente en su idioma original.
+2. **Vía Española (Traducción):** Los tickets ingleses se han traducido masivamente al español mediante modelos de **Hugging Face (`opus-mt-en-es`)** simulando un entorno de localización.
+3. **Objetivo:** Auditar si compensa (a nivel de F1-Score y Latencia de Inferencia) desplegar un modelo localizado en español o pagar una API de traducción en tiempo real hacia un modelo centralizado en inglés.
 
 ---
 
-## 💎 3. Núcleo Entregable (MVP Innegociable)
+## ✅ 3. Hitos Alcanzados (Estado Actual del Proyecto)
 
-El **Núcleo Entregable** constituye el corazón funcional y defendible del TFM. Es el compromiso innegociable cuyo rendimiento se valida con métricas cuantitativas reales sobre un dataset de partida concreto.
+El proyecto se encuentra en plena fase de experimentación algorítmica. Hasta la fecha se ha completado:
 
-### 3.1. Motor NLP y Clasificación Jerárquica de Tripletas
-* **Dataset de Partida:** Trabajo sobre el conjunto público *Multilingual Customer Support Tickets* (Kaggle, T. Bueck). Se extrae y filtra la muestra en español enfocada en categorías afines a soporte técnico (`Technical Support`, `IT Support`, `Product Support`), combinando los atributos `queue + type + priority` como proxy realista de la tripleta (*Tipo / Subtipo / Detalle*) de un CRM de telecomunicaciones.
-* **Preprocesado y Normalización:** Limpieza de texto, tokenización con `spaCy`, anonimización básica de PII y gestión de abreviaturas del sector de telecomunicaciones (ej. *ONT, router, APN, IMEI, pérdida de paquetes* mediante diccionario especializado).
-* **Vectorización y Modelado:**
-  * **Baseline:** Representación `TF-IDF` acoplada a modelos de clasificación en conjunto (`XGBoost` / `Random Forest` / `Logistic Regression`).
-  * **Evolución:** Uso de **Embeddings semánticos** densos (`sentence-transformers`) para capturar matices e intenciones implícitas en el texto del cliente.
-* **Gestión del Desequilibrio de Clases:** Aplicación de pesos de clase (`class_weight`) y técnicas de remuestreo (ej. `SMOTE` en el espacio vectorial) para garantizar el aprendizaje en tipificaciones minoritarias críticas.
-* **Calibración del Umbral de Confianza Operativa:** El modelo no asigna tipificaciones automáticamente a ciegas. Se calibra empíricamente un umbral mínimo de probabilidad: si la certeza de la predicción es inferior a este umbral, el caso se enruta a **revisión manual**, optimizando el balance precisión-cobertura.
+### Fase 1: Ingeniería de Datos y MLOps Base
+* **Limpieza NLP:** Lematización y tokenización estricta con `spaCy` (`en_core_web_sm` y `es_core_news_sm`).
+* **Ingeniería de Features:** Vectorización `TF-IDF` a 10.000 dimensiones.
+* **Serialización MLOps:** Desacople arquitectónico guardando los tensores dispersos en formato hipercomprimido `.npz` y `.csv` en la carpeta `data/features` para cargas ultrarrápidas (< 0.5s) en notebooks posteriores.
 
-### 3.2. Microservicio API de Auditoría con FastAPI
-El motor de clasificación se expone como un servicio web asíncrono y desacoplado, diseñado para integrarse con CRMs externos vía *webhook* o peticiones REST:
-* **Contrato e Interfaz de Verificación:** La API recibe en formato JSON el **texto del ticket** y la **tripleta asignada por el agente en el CRM**.
-* **Lógica de Auditoría en Tiempo Real:** El microservicio contrasta la tripleta recibida con la predicción interna del motor NLP:
-  * ✅ **Coincidencia (`Correcta`):** Se valida el enrutamiento y se permite el paso a la cola destino.
-  * ⚠️ **Discrepancia (`Incorrecta`):** Se intercepta el potencial falso escalado, devolviendo una alerta de auditoría junto con la tripleta predicha como **corrección sugerida**.
-* **Estándares y Documentación:** Endpoints asíncronos (`async def`) de alta concurrencia servidos con `Uvicorn` y validados por esquemas estrictos de `Pydantic`. Documentación interactiva autogenerada disponible vía **OpenAPI (`/docs`)**.
-
-### 3.3. Plan de Evaluación y Rigor Cuantitativo
-La validación del MVP se fundamenta en un marco metodológico estricto:
-1. **Splits Estratificados:** Partición rigurosa en conjuntos de entrenamiento, validación y prueba (`Train / Val / Test`) manteniendo la proporción original de las clases.
-2. **Métricas Granulares:** Evaluación detallada por clase cuantitativa (`Precisión`, `Recall`, `F1-Score` y `Macro-F1`), prestando especial atención al comportamiento en clases minoritarias propensas al misrouting.
-3. **Comparativa y Ablación:** Análisis comparativo documentado entre el modelo *Baseline (TF-IDF)* y la arquitectura avanzada con *Embeddings*, justificando empíricamente la selección final.
-4. **Análisis de Matriz de Confusión vs. Negocio:** Identificación sistemática de los pares de categorías con mayor confusión mutua y evaluación de su impacto operativo (no todos los errores de tipificación tienen el mismo coste de recontacto o retrabajo).
+### Fase 2: Baseline y Estudio de Ablación (SMOTE)
+* **Algoritmo Baseline (Naive Bayes):** Demostró estadísticamente que los modelos simples fallan ante el desbalanceo masivo de clases (Recall de averías cayó al 5%).
+* **Regresión Logística y SMOTE:** Se diseñó un Estudio de Ablación entrenando modelos lineales *con* y *sin* generación de datos sintéticos (SMOTE).
+* **Gran Logro:** SMOTE equilibró el volumen de clases, elevando el F1-Macro a 0.50 y logrando un **Recall del 69% en averías críticas en español**, superando al modelo nativo inglés. Los modelos predicen con latencias en producción inferiores a **2.5 milisegundos**.
 
 ---
 
-## ⚡ 4. Extensión Opcional (Desarrollo Sujeto a Disponibilidad de Tiempo)
+## 🚀 4. Próximos Pasos (Roadmap)
 
-Una vez completado, validado y cerrado el **Núcleo Entregable (MVP)**, y **únicamente si el calendario del máster lo permite**, el proyecto contempla las siguientes extensiones técnicas para potenciar la solución:
+La siguiente fase se centra en llevar la precisión del modelo desde el actual ~50% hasta el techo operativo (>80%) usando ensamblados complejos:
 
-### 4.1. Copiloto RAG para Asistencia y Resolución contextual
-* **Indexación Vectorial:** Creación de una base de conocimiento en `ChromaDB` indexando el histórico de resoluciones efectivas y notas técnicas de los agentes (presentes en el dataset de partida).
-* **Recuperación Semántica (Retrieval):** Ante la llegada de un ticket correctamente tipificado, el sistema realiza una búsqueda vectorial de los $N$ casos anteriores más concordantes semánticamente.
-* **Síntesis Generativa (Generation):** Integración con un LLM (`OpenAI API` o modelo open-source ejecutado localmente mediante `Ollama`) que toma el texto del ticket actual y las resoluciones recuperadas para redactar una **propuesta de respuesta o pasos de resolución asistida** para el técnico del Back Office.
-
-### 4.2. Dashboard Técnico y Monitorización del Modelo
-* **Interfaz Visual de Análisis (`Pandas / Matplotlib / Plotly`):** Construcción de una interfaz o cuadro de mando técnico que permita visualizar en tiempo real o en batch:
-  * Evolución de las métricas F1 y matrices de confusión por cola.
-  * Distribución del nivel de confianza operativa (porcentaje de casos autovalidados vs. derivados a revisión humana).
-  * Tiempos de latencia de inferencia del microservicio FastAPI.
+1. **Árboles de Decisión (Bagging):** Entrenamiento de `Random Forest` combinado con SMOTE para evaluar capturas de patrones no lineales.
+2. **Titanes de Boosting:** Enfrentamiento directo entre `XGBoost` y `LightGBM`. Se comparará el impacto de generar datos falsos (SMOTE) frente a usar el equilibrado matemático nativo de estos algoritmos (*Class Weights*).
+3. **Hyperparameter Tuning (Embudo):** Los dos mejores modelos de la fase anterior pasarán por un proceso exhaustivo de `GridSearchCV` para exprimir su precisión matemática.
+4. **Desarrollo Backend:** Empaquetado del modelo campeón y exposición mediante un microservicio asíncrono con `FastAPI`.
 
 ---
 
 ## 🛠️ 5. Stack Tecnológico
 
-| Área | Tecnología / Herramienta | Uso Principal |
-| :--- | :--- | :--- |
-| **Lenguaje Core** | Python 3.10+ | Desarrollo del pipeline NLP, modelado y microservicios |
-| **Preprocesado & NLP** | `spaCy`, `NLTK`, `re` | Tokenización, lematización, normalización de texto y PII |
-| **Representación Vectorial** | `scikit-learn` (TF-IDF), `sentence-transformers` | Embeddings semánticos y vectorización dispersa |
-| **Machine Learning** | `scikit-learn`, `XGBoost` | Entrenamiento del clasificador jerárquico y ajuste de umbrales |
-| **Backend & API REST** | `FastAPI`, `Pydantic`, `Uvicorn` | Microservicio asíncrono de auditoría y esquemas de validación |
-| **RAG / Vector Store (Extensión)** | `LangChain`, `ChromaDB`, `OpenAI API` / `Ollama` | Búsqueda semántica e indexación de resoluciones previas |
-| **Evaluación & Visualización** | `Pandas`, `NumPy`, `Matplotlib`, `Plotly` | Tratamiento de datos, métricas de test y gráficas de evaluación |
+| Área | Tecnología |
+| :--- | :--- |
+| **Lenguaje Core** | Python 3.10+ |
+| **NLP & Traducción** | `spaCy`, Hugging Face (`Helsinki-NLP/opus-mt-en-es`) |
+| **Machine Learning** | `scikit-learn`, `imbalanced-learn` (SMOTE), `XGBoost`, `LightGBM` |
+| **Ingeniería de Datos**| `pandas`, `scipy.sparse` (Formatos `.npz` y `.parquet`) |
+| **Microservicios (Futuro)**| `FastAPI`, `Uvicorn`, `Pydantic` |
 
 ---
 
@@ -109,23 +68,13 @@ Una vez completado, validado y cerrado el **Núcleo Entregable (MVP)**, y **úni
 ```text
 SITOR/
 ├── data/
-│   ├── raw/                 # Dataset base (Multilingual Customer Support Tickets)
-│   └── processed/           # Datos limpios, normalizados y divididos (Train/Val/Test)
-├── notebook/
-│   └──                      # Notebooks exploratorios (EDA, comparativas de modelos, calibración)
-├── src/
-│   └──                      # Código fuente modular (preprocesado, entrenamiento, API FastAPI)
-├── .gitignore               # Configuración de exclusión de binarios, venv y secretos
-├── LICENSE                  # Licencia del proyecto
-├── README.md                # Documentación principal del proyecto (este archivo)
-└── README                   # Espejo de documentación principal
+│   ├── raw/                 # Dataset base original
+│   ├── processed/           # Trackers de métricas (tracker_en.csv, tracker_es.csv)
+│   └── features/            # Matrices TF-IDF (.npz) y etiquetas (.csv) listas para entrenar
+├── docs/                    # Documentación técnica, estrategia MLOps y memorias del Test A/B
+├── notebook/                # Laboratorio de IA (Pipelines numéricos y experimentales)
+├── src/                     # Código fuente de producción (Futuro FastAPI)
+├── .gitignore               
+├── LICENSE                  
+└── README.md                # Este documento
 ```
-
----
-
-## 🚀 7. Guía de Inicio Rápido *(Próximamente)*
-
-> *A medida que se desarrollen los módulos en la carpeta `src/`, aquí se incluirán los comandos exactos para la configuración del entorno virtual (`.venv`), la instalación de dependencias (`requirements.txt`), el entrenamiento de los clasificadores y la ejecución local del servidor `FastAPI` vía `Uvicorn`.*
-
----
-*Autoría: Proyecto individual desarrollado para la defensa del Máster en Data Science & IA de Evolve Academy.*
