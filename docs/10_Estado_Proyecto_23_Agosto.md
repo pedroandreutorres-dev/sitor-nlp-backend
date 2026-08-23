@@ -47,9 +47,20 @@ En el **Notebook 06**, escalamos a modelos no lineales usando técnica de *Baggi
 
 ---
 
-## 5. Próxima Fase: Los Titanes del Boosting (Notebook 07)
+## 5. La Caída del Titán: XGBoost (Notebook 07)
 
-El proyecto se dirige ahora hacia su clímax técnico. Una vez superado el modelo lineal y el modelo de Bagging, vamos a desplegar arquitecturas de gradiente:
+Bajo la hipótesis de que el descenso de gradiente superaría al Bagging, se ejecutó un Estudio de Ablación cruzado con XGBoost, enfrentando el balanceo matemático (*Class Weights*) contra el sintético (SMOTE).
 
-1.  **La Guerra del Boosting:** Ejecutaremos el enfrentamiento final entre `XGBoost` (gradiente clásico masivo) y `LightGBM` (arquitectura de crecimiento por hojas, de Microsoft). Compararemos el impacto de generar datos falsos (SMOTE) frente a usar los pesos nativos (*Class Weights*).
-2.  **Fase de Embudo (Fine-Tuning):** Extraeremos los 2 modelos campeones del Tracker y les aplicaremos `GridSearchCV` para exprimir su máximo potencial matemático antes de empaquetarlos en la API.
+**Resultados Empíricos (Fracaso Absoluto):**
+*   **Regresión Predictiva:** XGBoost se hundió a un F1-Macro de 0.51, quedando al mismo nivel que una simple Regresión Logística y muy por debajo del 0.68 de Random Forest.
+*   **Colapso Computacional:** El tiempo de entrenamiento se disparó de 15 segundos a más de 4 minutos (267 segundos) al intentar procesar la matriz SMOTE ultra-dispersa.
+*   **Diagnóstico:** XGBoost sufre de la Maldición de la Dimensionalidad en NLP puro si no se somete a un profundo y costoso proceso de *Hyperparameter Tuning*. 
+*   **Veredicto:** Oficialmente descartado de la arquitectura de producción.
+
+---
+
+## 6. Siguiente Fase (Roadmap Inmediato)
+
+1.  **La Última Bala del Boosting (LightGBM):** Evaluaremos la arquitectura de Microsoft. Si LightGBM sufre el mismo destino que XGBoost, declararemos a Random Forest vencedor absoluto de la fase algorítmica.
+2.  **Hyperparameter Tuning (Embudo):** El algoritmo que sobreviva (RF o LightGBM) será sometido a `GridSearchCV` para exprimir su precisión.
+3.  **Microservicio (Backend):** Despliegue del cerebro ganador en `FastAPI`.
