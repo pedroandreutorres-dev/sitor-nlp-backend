@@ -38,16 +38,19 @@ El proyecto se encuentra en plena fase de experimentación algorítmica. Hasta l
 * **Regresión Logística y SMOTE:** Se diseñó un Estudio de Ablación entrenando modelos lineales *con* y *sin* generación de datos sintéticos (SMOTE).
 * **Gran Logro:** SMOTE equilibró el volumen de clases, elevando el F1-Macro a 0.50 y logrando un **Recall del 69% en averías críticas en español**, superando al modelo nativo inglés. Los modelos predicen con latencias en producción inferiores a **2.5 milisegundos**.
 
+### Fase 3: Modelos No Lineales y Bagging (Random Forest)
+* **El Salto de Precisión:** La transición a los árboles de decisión (`Random Forest`) elevó la nota F1-Macro nativa de 0.50 a **0.68**. 
+* **Trazabilidad MLOps:** El modelo sufre un lógico aumento en la latencia de inferencia (de 2ms a 65ms) y el tiempo de entrenamiento, pero compensa al romper la barrera del **70% de F1-Score en detección de Averías Masivas** en ambos idiomas (usando SMOTE).
+
 ---
 
 ## 🚀 4. Próximos Pasos (Roadmap)
 
-La siguiente fase se centra en llevar la precisión del modelo desde el actual ~50% hasta el techo operativo (>80%) usando ensamblados complejos:
+La siguiente fase se centra en llevar la precisión del modelo desde el actual ~68% hasta el techo operativo (>80%) usando arquitecturas de gradiente:
 
-1. **Árboles de Decisión (Bagging):** Entrenamiento de `Random Forest` combinado con SMOTE para evaluar capturas de patrones no lineales.
-2. **Titanes de Boosting:** Enfrentamiento directo entre `XGBoost` y `LightGBM`. Se comparará el impacto de generar datos falsos (SMOTE) frente a usar el equilibrado matemático nativo de estos algoritmos (*Class Weights*).
-3. **Hyperparameter Tuning (Embudo):** Los dos mejores modelos de la fase anterior pasarán por un proceso exhaustivo de `GridSearchCV` para exprimir su precisión matemática.
-4. **Desarrollo Backend:** Empaquetado del modelo campeón y exposición mediante un microservicio asíncrono con `FastAPI`.
+1. **Titanes de Boosting:** Enfrentamiento directo entre `XGBoost` y `LightGBM`. Se comparará el impacto de generar datos falsos (SMOTE) frente a usar el equilibrado matemático nativo de estos algoritmos (*Class Weights*).
+2. **Hyperparameter Tuning (Embudo):** Los dos mejores modelos de las fases anteriores pasarán por un proceso exhaustivo de `GridSearchCV` para exprimir su precisión matemática.
+3. **Desarrollo Backend:** Empaquetado del modelo campeón y exposición mediante un microservicio asíncrono con `FastAPI`.
 
 ---
 

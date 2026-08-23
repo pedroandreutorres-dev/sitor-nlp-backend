@@ -36,10 +36,20 @@ En el **Notebook 05**, ejecutamos el Estudio de Ablación usando **Regresión Lo
 
 ---
 
-## 4. Próxima Fase: Ensamblados Avanzados y Boosting
+## 4. La Fase de Ensamblado: Random Forest (Notebook 06)
 
-El proyecto se dirige ahora hacia su clímax técnico. Una vez superado el modelo lineal, vamos a desplegar algoritmos de ensamblado:
+En el **Notebook 06**, escalamos a modelos no lineales usando técnica de *Bagging* (Random Forest con 100 árboles). 
 
-1.  **Random Forest (Notebook 06):** Verificaremos si crear un bosque de 100 árboles de decisión es capaz de encontrar patrones no lineales que la Regresión Logística no supo ver.
-2.  **Los Titanes del Boosting (Notebook 07):** Ejecutaremos la guerra final entre `XGBoost` (gradiente clásico) y `LightGBM` (arquitectura de hojas, auspiciado por Microsoft). Compararemos el impacto de SMOTE frente a los pesos de clase nativos de estos algoritmos.
-3.  **Fase de Embudo (Fine-Tuning):** Aplicaremos `GridSearchCV` únicamente a los campeones de las rondas anteriores para exprimir su máximo potencial matemático, antes de empaquetarlos en la API de FastAPI.
+**Logros alcanzados:**
+*   **El salto de inteligencia:** Random Forest aplastó a la Regresión Logística. Incluso sin SMOTE, los árboles consiguieron un F1-Macro de 0.61 (vs 0.46 lineal).
+*   **La ceguera corregida:** Al inyectarle SMOTE, Random Forest logró atrapar el **68% de las averías masivas en inglés** (F1 de 0.73) y el **64% en español** (F1 de 0.70). 
+*   **Impacto MLOps:** Documentamos que la latencia de inferencia saltó de 2ms a 65ms al tener que evaluar 100 árboles por ticket, un dato crítico para la arquitectura de producción.
+
+---
+
+## 5. Próxima Fase: Los Titanes del Boosting (Notebook 07)
+
+El proyecto se dirige ahora hacia su clímax técnico. Una vez superado el modelo lineal y el modelo de Bagging, vamos a desplegar arquitecturas de gradiente:
+
+1.  **La Guerra del Boosting:** Ejecutaremos el enfrentamiento final entre `XGBoost` (gradiente clásico masivo) y `LightGBM` (arquitectura de crecimiento por hojas, de Microsoft). Compararemos el impacto de generar datos falsos (SMOTE) frente a usar los pesos nativos (*Class Weights*).
+2.  **Fase de Embudo (Fine-Tuning):** Extraeremos los 2 modelos campeones del Tracker y les aplicaremos `GridSearchCV` para exprimir su máximo potencial matemático antes de empaquetarlos en la API.
