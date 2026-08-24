@@ -6,3 +6,5 @@ ES_L1_TFIDF_RF_NONE,queue,tfidf,random_forest,none,4.8221,62.61,0.5816,0.6121,n_
 ES_L1_TFIDF_RF_SMOTE,queue,tfidf,random_forest,smote,15.7321,65.97,0.6502,0.7,n_estimators=100
 ES_L1_TFIDF_XGB_WEIGHTS,queue,tfidf,xgboost,weights,95.1703,87.8,0.503,0.5897,"n_estimators=100, class_weight=balanced"
 ES_L1_TFIDF_XGB_SMOTE,queue,tfidf,xgboost,smote,234.1503,83.01,0.4941,0.594,n_estimators=100
+ES_L1_TFIDF_LGBM_WEIGHTS,queue,tfidf,lightgbm,weights,36.1125,60.31,0.5248,0.5919,"n_estimators=100, class_weight=balanced"
+ES_L1_TFIDF_LGBM_SMOTE,queue,tfidf,lightgbm,smote,101.6787,51.96,0.5434,0.6022,n_estimators=100
