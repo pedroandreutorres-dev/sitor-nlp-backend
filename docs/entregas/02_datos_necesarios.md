@@ -45,9 +45,4 @@ Para desarrollar el motor de clasificación NLP de SITOR, se necesita un corpus 
 * **¿Parece viable obtener los datos necesarios?** Sí, los datos ya están descargados y bajo custodia local.
 * **¿La información tiene suficiente calidad?** La calidad es suficiente para una prueba de viabilidad (MVP), asumiendo que la distribución semántica y de clases no será idéntica a la de un BPO real.
 * **¿Puede desarrollarse durante el curso?** Sí. Se ha acotado el alcance innegociable a la validación algorítmica (MVP), desplazando desarrollos complejos como el Copiloto RAG o el cálculo de ROI fuera del marco principal de entrega.
-* **Riesgo crítico de la Arquitectura en Cascada:** Al contar con un corpus base acotado (~16.000 tickets), existe el riesgo de que el volumen sea insuficiente para sostener 3 niveles de predicción encadenada, provocando escasez crítica de muestras en las clases profundas. Para mitigarlo:
-  * Se aplicarán técnicas de sobremuestreo sintético como **SMOTE** (*Synthetic Minority Over-sampling Technique*) tras la vectorización.
-  * Si el rendimiento colapsa a pesar del SMOTE, se plantean tres escenarios (sujetos a opinión del tutor):
-    * **Plan A:** Cascada completa (`Queue` > `Type` > `Priority`).
-    * **Plan B:** Recortar el MVP al Nivel 2 (`Queue` + `Type`).
-    * **Plan C:** Predecir exclusivamente el Nivel 1 (`Queue`).
+* **Riesgo crítico de la Alta Dimensionalidad Combinatoria:** Al contar con un corpus base acotado (~16.000 tickets), existe el riesgo de que el volumen sea insuficiente al segmentarse en múltiples combinaciones de clases. Para mitigarlo se aplicarán técnicas de sobremuestreo sintético como **SMOTE** (*Synthetic Minority Over-sampling Technique*) tras la vectorización, garantizando un entrenamiento equitativo para el objetivo matemático de predecir de forma simultánea la tripleta completa (`Queue` + `Type` + `Priority`).

@@ -120,9 +120,4 @@ El *pipeline* de procesamiento hacia la capa Gold ejecutará secuencialmente las
 * **¿Qué parte genera más incertidumbre?** La "limpieza semántica" en la construcción de `full_text_clean`. Aunque la estructura sea robusta, es probable que la lematización de spaCy arrastre solapamiento semántico (Concept Drift) o pierda matices técnicos cruciales para el dominio de las telecomunicaciones (especialmente en la traducción al español).
 * **¿Qué tabla/fichero puede dar más problemas?** El tercer archivo CSV crudo (`dataset-tickets-multi-lang3-4k.csv`), al ser el fichero con mayores anomalías estructurales detectadas.
 * **¿Qué ocurriría si no se puede construir la capa gold definida?** Si el procesamiento NLP de spaCy sobre todo el volumen excede los límites de memoria, la construcción de `full_text_clean` fracasará. El riesgo está mitigado parametrizando la limpieza por *batches*.
-* **Riesgo crítico de la Arquitectura en Cascada:** Al contar con un corpus base en inglés acotado (~16.000 tickets útiles), existe el riesgo de que el volumen sea insuficiente para sostener 3 niveles de predicción encadenada, provocando escasez crítica de muestras en las clases profundas. Para mitigarlo:
-  * Se aplicarán técnicas de sobremuestreo sintético como **SMOTE** (*Synthetic Minority Over-sampling Technique*) tras la vectorización.
-  * Si el rendimiento colapsa a pesar del SMOTE, se plantean tres escenarios:
-    * **Plan A:** Cascada completa (`Queue` > `Type` > `Priority`).
-    * **Plan B:** Recortar el MVP al Nivel 2 (`Queue` + `Type`).
-    * **Plan C:** Predecir exclusivamente el Nivel 1 (`Queue`).
+* **Riesgo crítico de la Alta Dimensionalidad Combinatoria:** Al contar con un corpus base en inglés acotado (~16.000 tickets útiles), existe el riesgo de que el volumen sea insuficiente al segmentarse en múltiples combinaciones de clases. Para mitigarlo se aplicarán técnicas de sobremuestreo sintético como **SMOTE** (*Synthetic Minority Over-sampling Technique*) tras la vectorización, garantizando un entrenamiento equitativo para el objetivo matemático de predecir de forma simultánea la tripleta completa (`Queue` + `Type` + `Priority`).
