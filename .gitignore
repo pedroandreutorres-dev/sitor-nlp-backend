@@ -34,3 +34,4 @@ data/features/*.csv
 # Carpetas de historico y borradores descartados (NO SUBIR)
 notebook/historico_L1/
 docs/historico_y_borradores/
+docs/entregas/ejemplos/
