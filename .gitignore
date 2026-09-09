@@ -8,16 +8,16 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Datos brutos (Kaggle)
+# Datos brutos y procesados
 data/raw/*
 !data/raw/.gitkeep
-
-# Archivos pesados de procesamiento y matrices
 data/processed/*.parquet
 data/features/*.npz
 data/features/*.csv
+data/gold/*.parquet
+data/resultados/*.csv
 
-# Excepciones (Permitir subir los Trackers si existen, ya que pesan poco)
+# Excepciones
 !data/processed/tracker_en.csv
 !data/processed/tracker_es.csv
 
@@ -31,7 +31,11 @@ data/features/*.csv
 *.swp
 *.swo
 
-# Carpetas de historico y borradores descartados (NO SUBIR)
-notebook/historico_L1/
+# Carpetas de modelos binarios
+models/
+notebook/checkpoints/
+
+# Carpetas de historico
+notebook/historico/
 docs/historico_y_borradores/
-docs/entregas/ejemplos/
+scratch/
