@@ -30,6 +30,7 @@ data/resultados/*.csv
 .idea/
 *.swp
 *.swo
+skills.md
 
 # Carpetas de modelos binarios
 models/
