@@ -4,10 +4,10 @@
 
 | Programa | Área temática | Tipo de entrega | Versión |
 | :--- | :--- | :--- | :--- |
-| Máster en Data Science & IA - Evolve Academy | NLP, LLMs y arquitecturas RAG, MLOps | MVP individual con datos públicos + plan de validación con datos reales (PoC) | V7.2 - Arquitectura BPO, Reproducibilidad y Bifurcación Local/Cloud |
+| Máster en Data Science & IA - Evolve Academy | NLP, LLMs y arquitecturas RAG, MLOps | MVP individual con datos públicos + plan de validación con datos reales (PoC) | V8.0 - Cierre Financiero y MLOps |
 
 > **Nota sobre esta versión**
-> Esta versión V7.2 integra las directivas operativas definitivas. Mantiene la prohibición de eliminar registros (anti-falsificación) y la eliminación del *Model Routing*. La gran actualización reside en la **Bifurcación de Infraestructura** para el Deep Learning: se evaluará el límite del hardware local (SetFit) frente a un entorno Cloud GPU (Fine-Tuning completo), exigiendo una congelación estricta de particiones (Folds) mediante formato `.parquet` para garantizar una comparativa científica intachable.
+> Esta versión V8.0 integra las lecciones aprendidas durante la Fase 6 de evaluación financiera. Se ha reemplazado el concepto de colas sumidero por una **Regla de Pasividad Estricta**, y se ha eliminado cualquier referencia a umbrales de decisión estáticos (ej. 60%), subordinando la Tasa de Automatización al cálculo dinámico del *Break-Even* financiero bajo escenarios de estrés (25% error FO). El proyecto avanza hacia la Fase 7 (Despliegue FastAPI + Streamlit).
 
 ---
 
@@ -38,8 +38,8 @@ Estos errores derivan en falsos escalados hacia el Back Office (Nivel 2), consum
 | Multilingual Customer Support Tickets (Kaggle) | Tickets con asunto, texto, cola, tipo y prioridad. | `queue` + `type` + `priority` conforman la variable objetivo. |
 
 #### 3.2 Lógica Operativa: Anti-Falsificación y Abstención
-1.  **Auditoría y Mapeo (Previo al Split):** La formación de la tripleta disparará la cardinalidad de clases. **Queda estrictamente prohibido eliminar filas del dataset.** Toda clase irrelevante o con un volumen estadísticamente inaprendible será colapsada unificadamente bajo la etiqueta `OUT_OF_SCOPE`. Esto asegura que el denominador volumétrico de producción sea idéntico al histórico. Tras esto, se realizará el *Stratified Train/Test Split*.
-2.  **Abstención Dinámica en Inferencia:** En producción, si la predicción matemática del ticket arroja la clase `OUT_OF_SCOPE`, o si arroja cualquier otra clase pero con una confianza inferior al umbral de negocio (ej. 60%), la API colapsará la salida y devolverá el estado `MANUAL_REVIEW`.
+1.  **Auditoría y Mapeo (Previo al Split):** La formación de la tripleta disparará la cardinalidad de clases. **Queda estrictamente prohibido eliminar filas del dataset.** Toda clase irrelevante o con un volumen estadísticamente inaprendible será colapsada unificadamente bajo la etiqueta `Derivacion_Manual_Minoritaria`. Esto asegura que el denominador volumétrico de producción sea idéntico al histórico. Tras esto, se realizará el *Stratified Train/Test Split*.
+2.  **Abstención Dinámica en Inferencia (Regla de Pasividad):** En producción, si la predicción matemática del ticket arroja la clase `Derivacion_Manual_Minoritaria`, o si la red neuronal emite una probabilidad inferior al umbral óptimo de *Break-Even* financiero, el orquestador abortará la intervención. Aplicando una regla de pasividad estricta, SITOR no modificará la tipificación original y permitirá que el ticket mantenga su flujo orgánico humano, asumiendo la tasa de error histórica sin inyectar ruido sintético.
 
 ---
 
@@ -61,6 +61,6 @@ Se ejecutará un torneo empírico utilizando exclusivamente contexto estándar (
 2.  **Validación Cruzada Estratificada (5-Fold CV):** Sobre los Folds pre-calculados, cruzando:
     *   **Predictivas:** F1-Macro (con varianza para medir estabilidad) y F1-Weighted.
     *   **Coste/Rendimiento:** Tiempos de CPU/GPU (entrenamiento) y latencia (p95).
-    *   **Negocio:** **Tasa de Automatización de Auditoría** (porcentaje de tickets validados o auto-corregidos de forma autónoma, con `predict_proba` >= 60%, evaluado contra el 100% del volumen real).
+    *   **Negocio:** **Tasa de Automatización de Auditoría** (porcentaje de tickets validados o auto-corregidos de forma autónoma, evaluado contra el 100% del volumen real tras aislar matemáticamente el umbral de *Break-Even* que maximiza el ROI en escenarios de estrés).
 3.  **Calibración del Punto de Operación (Operating Point):** Sobre el modelo ganador, se ejecutará un barrido del umbral de confianza probabilística (ej. 0.50 a 0.95) cruzando la curva Precision-Recall con la matriz de costes del negocio, para fijar el umbral estático definitivo.
 4.  **Evaluación de Impacto de Negocio (Test Set - One-Shot):** Con el umbral óptimo congelado, el modelo campeón se evaluará **una única vez** sobre el conjunto de Test para extraer métricas definitivas y calcular el ROI de la auditoría autónoma.

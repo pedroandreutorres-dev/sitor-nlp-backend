@@ -1,4 +1,4 @@
-# Hoja de Ruta: Batería de Modelos y Evolución MLOps (V8)
+# Hoja de Ruta: Batería de Modelos y Evolución MLOps (V9)
 
 Este documento central es el mapa inmutable del proyecto SITOR. Registra las fases algorítmicas, desde el tratamiento crudo de los datos hasta el empaquetado del orquestador final.
 
@@ -40,27 +40,29 @@ Este documento central es el mapa inmutable del proyecto SITOR. Registra las fas
 
 ---
 
-## FASE 5: Orquestador Maestro y Hold-Out (COMPLETADA)
-**Objetivo:** Ingesta total y cierre del experimento.
+## FASE 5: Orquestador Maestro, Hold-Out e Inferencia Cloud (COMPLETADA)
+**Objetivo:** Ingesta total, cierre del experimento y extracción cruda de logits.
 
 *   **Full-Shot Train:** Entrenamiento sin *K-Fold* sobre los 23.000 tickets durante 10 épocas ininterrumpidas (GPU A100).
-*   **Veredicto de Cuarentena:** Se ingesta el *Test Set* ciego, arrojando la telemetría oficial del negocio: **30.46% Tasa Automatización**, **78.63% Precisión**, **F1-Macro 0.515**.
+*   **Veredicto de Cuarentena:** Se ingesta el *Test Set* ciego, arrojando la telemetría oficial del negocio.
 *   **Compilación:** Guardado del binario `.safetensors`.
+*   **Inferencia Cloud (Cuaderno 06):** Extracción de probabilidades puras (Softmax) en GPU usando el entorno Cloud, resultando en `predicciones_holdout_roberta.csv`.
 
 ---
 
-## FASE 6: Visualización y Auditoría de Negocio (ACTUAL)
-**Objetivo:** Extraer conocimiento y generar los entregables para el Tribunal.
+## FASE 6: Visualización y Auditoría de Negocio (COMPLETADA)
+**Objetivo:** Extraer conocimiento, cruzar predicciones ciegas con volumetría real y demostrar rentabilidad financiera.
 
-*   **Paso 6.1:** Crear cuaderno local `06_Evaluacion_y_Visualizacion_Negocio.ipynb`.
-*   **Paso 6.2:** Ingestar los archivos `.csv` de resultados (*Random Forest* vs *RoBERTa*).
-*   **Paso 6.3:** Renderizar gráficos clave: Curvas de convergencia, gráficas de barras comparativas y la gran matriz de confusión ciega.
+*   **Celda 2 (Bake-Off):** Validación de estabilidad comparando K-Fold (Baseline) vs K-Fold (RoBERTa).
+*   **Celda 3 (Fricción):** Matriz masiva y aislamiento de las Top 10 Colisiones Taxonómicas.
+*   **Celda 4 (Guillotina):** Gráfico de densidad (KDE) evidenciando el mecanismo de pasividad.
+*   **Celda 5 (Sensibilidad):** Optimización iterativa aislando el *Break-Even* financiero bajo regímenes de estrés (25% error humano).
+*   **Celda 6 y 7 (Waterfall y ROI):** Desglose del ahorro neto mensual e impacto estructural (Attrition, SLA, Backlog).
 
 ---
 
-## FASE 7: MLOps y Despliegue Backend (FUTURO)
-**Objetivo:** Convertir el binario matemático en un producto de software integrable.
+## FASE 7: MLOps y Despliegue de Interfaz (ACTUAL)
+**Objetivo:** Convertir el artefacto de modelado en un ecosistema de microservicios.
 
-*   **API REST:** Levantar un contenedor `FastAPI` asíncrono exponiendo la ruta `/predict`.
-*   **Gestor de Reglas:** Lógica BPO que lea la salida del *Softmax* y la intercepte en función del umbral ($P \ge 0.60$).
-*   **Prototipo Visual:** Interfaz mínima (`Streamlit`) para ejecutar demostraciones en vivo.
+*   **Backend Analítico (FastAPI):** Exposición de inferencia REST en `src/api/main.py`. Integración del Gestor de Reglas paramétrico.
+*   **Frontend Ejecutivo (Streamlit):** Despliegue de un dashboard interactivo en `src/frontend/app.py` para inyección de tickets y auditoría de telemetría en tiempo real.
