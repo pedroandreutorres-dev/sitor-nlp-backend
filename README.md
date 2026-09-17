@@ -51,12 +51,14 @@ El modelo maestro, evaluado contra un *Test Set* ciego de cuarentena (20% de los
 
 ---
 
-## 🚀 4. Próximos Pasos (Fase 7: Despliegue MLOps)
+## 🚀 4. Arquitectura MLOps en Desarrollo (Fase 7)
 
-El proyecto entra en su última fase de ingeniería de software para convertirse en un ecosistema de microservicios:
+El proyecto se encuentra ejecutando su última fase de ingeniería de software para convertirse en un ecosistema de microservicios robusto:
 
-1. **Backend Analítico:** Empaquetado del tensor en un servidor `FastAPI` asíncrono, alojado en `src/api/`, ejecutando el Gestor de Reglas paramétrico.
-2. **Frontend Ejecutivo:** Construcción de un dashboard web interactivo (`Streamlit`) en `src/frontend/` para la ingesta de JSONs y auditoría visual de ROI en tiempo real.
+1. **Backend REST (Event-Driven):** Empaquetado del tensor en un servidor `FastAPI` asíncrono en `src/api/`. La API expondrá un endpoint unitario `/predict` con validación estricta de Pydantic, diseñado para integrarse con los webhooks de CRMs (ServiceNow, Zendesk) en tiempo real. Implementa el Cortafuegos de Pasividad (devolviendo la tripleta humana original ante alta entropía).
+2. **Torre de Control (Streamlit):** Construcción de un dashboard multipestaña en `src/frontend/`:
+   * **Live Observability:** Feed de streaming en tiempo real para el NOC, mostrando intercepciones exitosas (verde) y mitigando el sesgo de supervivencia al mostrar los bloqueos por pasividad (gris).
+   * **API Sandbox:** Consola interactiva para inyectar JSONs manuales y auditar el contrato de datos, el veredicto puro y la latencia del servidor.
 
 ---
 
@@ -81,11 +83,12 @@ SITOR/
 │   └── resultados/          # CSVs de telemetría extraídos del Cloud
 ├── docs/                    # Manifiestos arquitectónicos y hojas de ruta
 │   ├── historico_y_borradores/# Propuestas obsoletas (Ignorado por Git)
-│   └── parametros/          # Constantes del BPO para el simulador financiero
+│   ├── parametros/          # Constantes del BPO para el simulador financiero
+│   └── 11_Arquitectura_Despliegue_Fase7.md # Especificaciones definitivas MLOps
 ├── notebook/                # Notebooks de experimentación (Jupyter)
 ├── src/                     # Código fuente de despliegue MLOps
-│   ├── api/                 # Microservicio backend (FastAPI)
-│   └── frontend/            # Dashboard interactivo (Streamlit)
+│   ├── api/                 # Microservicio backend (FastAPI + Pydantic)
+│   └── frontend/            # Dashboard multipestaña (Streamlit)
 ├── README.md                
 └── .gitignore               
 ```

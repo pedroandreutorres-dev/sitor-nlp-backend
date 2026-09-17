@@ -40,3 +40,7 @@ notebook/checkpoints/
 notebook/historico/
 docs/historico_y_borradores/
 scratch/
+
+# Archivos temporales de despliegue
+instrucciones_despliegue_temp.md
+specs_frontend_fase7.md
