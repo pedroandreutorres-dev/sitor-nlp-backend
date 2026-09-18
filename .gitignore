@@ -25,12 +25,19 @@ data/resultados/*.csv
 .env
 .env.*
 
-# Configuraciones de IDE y editores
+# Configuraciones de IDE y OS
 .vscode/
 .idea/
 *.swp
 *.swo
+.DS_Store
+Thumbs.db
 skills.md
+
+# Testing y Coverage
+.pytest_cache/
+htmlcov/
+.coverage
 
 # Carpetas de modelos binarios
 models/
@@ -44,3 +51,4 @@ scratch/
 # Archivos temporales de despliegue
 instrucciones_despliegue_temp.md
 specs_frontend_fase7.md
+instrucciones_backend_fase7.md

@@ -51,14 +51,14 @@ El modelo maestro, evaluado contra un *Test Set* ciego de cuarentena (20% de los
 
 ---
 
-## 🚀 4. Arquitectura MLOps en Desarrollo (Fase 7)
+## ⚙️ 4. Arquitectura MLOps Desplegada (Fase 7)
 
-El proyecto se encuentra ejecutando su última fase de ingeniería de software para convertirse en un ecosistema de microservicios robusto:
+El proyecto ha concluido su ciclo de vida de ingeniería con el empaquetado de un ecosistema de microservicios robusto y testeado:
 
-1. **Backend REST (Event-Driven):** Empaquetado del tensor en un servidor `FastAPI` asíncrono en `src/api/`. La API expondrá un endpoint unitario `/predict` con validación estricta de Pydantic, diseñado para integrarse con los webhooks de CRMs (ServiceNow, Zendesk) en tiempo real. Implementa el Cortafuegos de Pasividad (devolviendo la tripleta humana original ante alta entropía).
-2. **Torre de Control (Streamlit):** Construcción de un dashboard multipestaña en `src/frontend/`:
-   * **Live Observability:** Feed de streaming en tiempo real para el NOC, mostrando intercepciones exitosas (verde) y mitigando el sesgo de supervivencia al mostrar los bloqueos por pasividad (gris).
-   * **API Sandbox:** Consola interactiva para inyectar JSONs manuales y auditar el contrato de datos, el veredicto puro y la latencia del servidor.
+1. **Backend REST (Event-Driven):** Empaquetado del tensor en un servidor `FastAPI` síncrono (protegiendo el Event Loop) en `src/api/`. La API expone el endpoint `/predict` con validación estricta de Pydantic, diseñado para integrarse con CRMs. Implementa el Cortafuegos de Pasividad (devolviendo la tripleta humana original ante alta entropía).
+2. **Torre de Control (Streamlit):** Dashboard multipestaña en `src/frontend/` que sirve de interfaz de auditoría:
+   * **Live Observability:** Feed de streaming en tiempo real para el NOC, clonando la estética MLOps (Figma). Muestra intercepciones exitosas (verde neón con tachado rojo de la tripleta humana) y mitiga el sesgo de supervivencia mostrando bloqueos por pasividad (gris).
+   * **API Sandbox:** Consola interactiva para inyectar JSONs manuales y auditar el contrato de datos, la latencia (ms) y el comportamiento de la red PyTorch en crudo.
 
 ---
 
