@@ -4,39 +4,39 @@
 
 ---
 
-## IDEA 1: Sistema Predictivo de Alerta Temprana para la ZBE de Ponferrada
+## IDEA 1 (SELECCIONADA): SITOR - Sistema Inteligente de Triaje y Orquestación de Requerimientos
 
 ### 1. Qué problema o necesidad aborda
-El Ayuntamiento de Ponferrada ha implementado una Zona de Bajas Emisiones (ZBE) equipada con sensores de calidad del aire. Sin embargo, el modelo de gestión actual es puramente **reactivo**: las restricciones de tráfico o los avisos a la población solo se activan cuando los umbrales de contaminación ($NO_2$, partículas) ya han superado los límites legales, lo que genera problemas logísticos repentinos para los ciudadanos.
+En el entorno de los BPO (Business Process Outsourcing) y grandes centros de soporte técnico (Helpdesk), el triaje inicial de incidencias sufre de ineficiencias críticas. Los agentes humanos (Front-Office) deben leer solicitudes en texto libre y clasificarlas en taxonomías complejas (casi 100 clases). La fatiga y la alta rotación de personal generan tasas de error del 15% al 25%. Esto provoca "falsos escalados": tickets que se derivan al departamento equivocado del Back-Office, generando cuellos de botella, pérdida de tiempo operativo (AHT) y un impacto financiero directo por horas malgastadas.
 
 ### 2. Por qué creo que puede tener impacto o valor
-Este proyecto propone la transición hacia un modelo **proactivo** mediante Inteligencia Artificial (Series Temporales / Machine Learning). Al cruzar los históricos de contaminación con variables meteorológicas predictivas (viento, lluvia, inversión térmica), el modelo podrá pronosticar picos de contaminación con 48-72 horas de antelación. Su valor principal es dotar al Ayuntamiento de una herramienta real de *Smart City* para emitir avisos preventivos y evitar llegar a los escenarios de restricción severa.
+SITOR propone auditar y automatizar este enrutamiento utilizando modelos de Procesamiento de Lenguaje Natural (NLP) basados en arquitecturas *Transformer* (RoBERTa). El valor del proyecto es que no busca una automatización completa, sino implementar un **sistema basado en umbrales de confianza**: el modelo calculará su propia certidumbre estadística y solo intervendrá (sobrescribiendo la decisión del agente) cuando su confianza supere un límite de seguridad estricto (ej. > 0.80). El impacto será una liberación medible de capacidad operativa (FTEs) y una reducción del trabajo acumulado en el Nivel 2, demostrando rentabilidad (ROI).
 
 ### 3. Qué me motiva personalmente a trabajar en ella
-Como residente de Ponferrada, me motiva profundamente aplicar los conocimientos técnicos del máster para resolver un problema de infraestructura pública en mi propia ciudad. Es una excelente oportunidad para demostrar cómo los datos pueden mejorar la salud pública y facilitar la convivencia entre la movilidad urbana y la sostenibilidad ambiental.
+Al conocer de primera mano el tejido corporativo y los problemas de orquestación en *Service Desks*, me motiva construir una solución que resuelva un problema real de negocio. Supone un reto técnico (pasar de *Machine Learning* clásico a *Deep Learning*) y me permite explorar cómo la Inteligencia Artificial puede integrarse en la empresa como una herramienta de apoyo y corrección de errores, más que como un mero experimento académico.
 
 ---
 
-## IDEA 2: Detección Proactiva de Ransomware en Sistemas de Backup (Caso: Kópius)
+## IDEA 2 (DESCARTADA): Sistema Predictivo de Alerta Temprana para la ZBE de Ponferrada
 
 ### 1. Qué problema o necesidad aborda
-Las empresas proveedoras de servicios Cloud y copias de seguridad, como la firma local Kópius Backup, se enfrentan al reto de las "infecciones latentes" por Ransomware. El peligro real ocurre cuando un virus encripta los sistemas de un cliente y el software de backup realiza una copia de seguridad de esos archivos ya dañados, sobrescribiendo de forma automatizada la última copia sana sin que ningún técnico se dé cuenta a tiempo.
+El Ayuntamiento de Ponferrada ha implementado una Zona de Bajas Emisiones (ZBE). Sin embargo, el modelo de gestión actual es reactivo: las restricciones de tráfico se activan cuando la contaminación ya ha superado los límites, generando caos logístico repentino.
 
 ### 2. Por qué creo que puede tener impacto o valor
-El proyecto plantea entrenar un modelo de **Aprendizaje No Supervisado (Detección de Anomalías)** basado exclusivamente en la telemetría y metadatos del servidor (tamaño de las copias, tiempo de ejecución, ratio de compresión, archivos modificados), garantizando la privacidad (RGPD) al no leer el contenido de los archivos. El impacto es enorme: la IA detectaría un patrón anómalo de encriptación en tiempo real y bloquearía la sobrescritura del backup, salvando la infraestructura del cliente.
+Se proponía un modelo proactivo cruzando datos de calidad del aire con predicciones meteorológicas para pronosticar picos de contaminación con 48 horas de antelación.
 
 ### 3. Qué me motiva personalmente a trabajar en ella
-Tengo la oportunidad de colaborar directamente con el sector tecnológico local (Kópius). Me apasiona la idea de construir una arquitectura de Machine Learning orientada a la ciberseguridad que no se quede en un ejercicio académico, sino que pueda ser integrada como una capa de seguridad real (I+D) en los sistemas de una pyme de mi entorno.
+Aplicar *Machine Learning* predictivo a la infraestructura pública (*Smart City*) de mi propia ciudad para mejorar la sostenibilidad urbana.
 
 ---
 
-## IDEA 3: Viticultura de Precisión y Machine Learning en El Bierzo
+## IDEA 3 (DESCARTADA): Detección Proactiva de Ransomware en Sistemas de Backup
 
 ### 1. Qué problema o necesidad aborda
-El sector vitivinícola se enfrenta a pérdidas económicas drásticas debido a factores climáticos imprevisibles, especialmente las plagas (como el mildiu, dependiente de la humedad) y las heladas tardías de primavera. Actualmente, muchos viticultores aplican tratamientos químicos de forma preventiva o genérica, o reaccionan a las heladas cuando el daño en la vid ya es irreversible.
+Los proveedores de *Cloud Backup* se enfrentan al peligro de respaldar archivos ya encriptados por un Ransomware latente, sobrescribiendo la última copia sana del cliente.
 
 ### 2. Por qué creo que puede tener impacto o valor
-Mediante la extracción y procesamiento de datos climáticos históricos (ERA5/AEMET) y el uso de algoritmos predictivos, el objetivo es crear un modelo de *Forecasting* de riesgo agrícola. El modelo avisaría a las bodegas con días de antelación sobre la probabilidad exacta de una helada en coordenadas específicas o el riesgo de proliferación de hongos. El impacto es doble: ahorro económico al salvar las cosechas y mejora de la sostenibilidad al reducir drásticamente el uso de sulfatos innecesarios.
+Mediante detección de anomalías (Aprendizaje No Supervisado) sobre metadatos de telemetría (ratios de compresión, tiempos), la IA bloquearía el backup corrompido sin necesidad de leer archivos.
 
 ### 3. Qué me motiva personalmente a trabajar en ella
-El sector del vino y la Denominación de Origen (D.O.) son el motor económico y cultural de la comarca de El Bierzo. Me entusiasma la idea de fusionar la tradición agrícola milenaria de mi tierra con la tecnología predictiva más avanzada, ayudando a modernizar el trabajo en el campo mediante la Inteligencia Artificial.
+Construir una arquitectura de ciberseguridad aplicada al sector local para evitar desastres empresariales irremediables.

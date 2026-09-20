@@ -92,3 +92,30 @@ SITOR/
 â”œâ”€â”€ README.md                
 â””â”€â”€ .gitignore               
 ```
+
+---
+
+## ?? 7. Guía de Ejecución Rápida (Cómo usar SITOR)
+
+Para levantar el ecosistema completo en tu máquina local:
+
+### 1. Requisitos Previos
+Asegúrate de tener Python 3.10+ y el entorno virtual activado. Luego instala las dependencias:
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Levantar la API Backend (FastAPI)
+Abre una terminal en la raíz del proyecto y arranca el servidor web:
+```bash
+uvicorn src.api.main:app --reload --port 8000
+```
+La API quedará escuchando en `http://localhost:8000`. Puedes consultar la documentación interactiva (Swagger) en `http://localhost:8000/docs`.
+
+### 3. Levantar el Panel de Auditoría (Streamlit)
+Abre una **segunda terminal** (dejando la API corriendo de fondo) y ejecuta:
+```bash
+streamlit run src/frontend/app.py
+```
+Se abrirá automáticamente tu navegador en `http://localhost:8501`. Desde la pestaña "API Sandbox" podrás inyectar tickets manualmente y ver la predicción de la red neuronal en tiempo real.
+

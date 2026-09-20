@@ -52,3 +52,10 @@ scratch/
 instrucciones_despliegue_temp.md
 specs_frontend_fase7.md
 instrucciones_backend_fase7.md
+GUION_DEFENSA_TFM.md
+PLAN_DE_EJECUCION.md
+
+# Ignorar documentacion temporal y operativa
+/docs/*
+!/docs/assets/
+!/docs/entregas/
