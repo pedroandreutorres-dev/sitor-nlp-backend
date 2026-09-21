@@ -59,3 +59,6 @@ PLAN_DE_EJECUCION.md
 /docs/*
 !/docs/assets/
 !/docs/entregas/
+
+# Experimentos de robustez
+experiments/

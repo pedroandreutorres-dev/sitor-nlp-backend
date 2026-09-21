@@ -80,8 +80,8 @@ st.markdown("""
 .col-human { width: 25%; }
 .col-sitor { width: 25%; }
 .col-conf { width: 20%; text-align: right; }
-.badge-override { background-color: #003300; color: #00FF00; padding: 2px 6px; font-size: 0.75em; border-radius: 3px; font-weight: bold; border: 1px solid #00FF00; }
-.badge-maintained { background-color: #222222; color: #888888; padding: 2px 6px; font-size: 0.75em; border-radius: 3px; font-weight: bold; border: 1px solid #555555; }
+.badge-override { background-color: #003300; color: #00FF00; padding: 2px 6px; font-size: 0.85em; border-radius: 3px; font-weight: bold; border: 1px solid #00FF00; }
+.badge-maintained { background-color: #222222; color: #888888; padding: 2px 6px; font-size: 0.85em; border-radius: 3px; font-weight: bold; border: 1px solid #555555; }
 .text-red-strike { color: #FF4444; text-decoration: line-through; display: block; font-size: 0.85em; margin-bottom: 2px; }
 .text-green { color: #00FF00; display: block; font-size: 0.85em; font-weight: bold; margin-bottom: 2px; }
 .text-gray { color: #888888; display: block; font-size: 0.85em; margin-bottom: 2px; }
@@ -104,7 +104,7 @@ with tab1:
     col_kpi1, col_kpi2, col_kpi3, col_kpi4 = st.columns(4)
     col_kpi1.metric("Tickets Interceptados", f"{st.session_state.kpi_overrides}")
     col_kpi2.metric("Tasa Automatización", f"{tasa_automatizacion:.1f} %")
-    col_kpi3.metric("Umbral de Seguridad", "0.75", delta="Softmax Limit", delta_color="off")
+    col_kpi3.metric("Umbral de Seguridad", "0.85", delta="Softmax Limit", delta_color="off")
     col_kpi4.metric("Horas L2 Liberadas", f"{horas_liberadas:.1f} hrs")
     
     st.divider()
@@ -213,7 +213,7 @@ with tab1:
                     </div>
                     <div class="col-conf">
                         <div class="conf-huge-gray">{conf_pct:.1f}%</div>
-                        <div class="text-gray" style="font-size: 0.7em;">&#8595; BELOW 0.75 - PASSIVITY</div>
+                        <div class="text-gray" style="font-size: 0.7em;">&#8595; BELOW 0.85 - PASSIVITY</div>
                     </div>
                 </div>
                 '''

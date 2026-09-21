@@ -13,7 +13,7 @@ from src.api.schemas import TicketInput, TicketResponse
 
 # Carga de hiperparámetros desde el entorno
 load_dotenv()
-UMBRAL_PASIVIDAD = float(os.getenv("UMBRAL_PASIVIDAD", 0.75))
+UMBRAL_PASIVIDAD = float(os.getenv("UMBRAL_PASIVIDAD", 0.85))
 MODEL_PATH = os.getenv("MODEL_PATH", "models/produccion_roberta/")
 
 # Referencias globales en RAM
