@@ -1,101 +1,80 @@
-# SITOR - Sistema Inteligente de TipificaciÃ³n, OrquestaciÃ³n y ResoluciÃ³n de Incidencias
+# SITOR - Sistema Inteligente de Tipificación, Orquestación y Resolución de Incidencias
 
-> **Proyecto de Fin de MÃ¡ster (PFM)**  
-> **MÃ¡ster en Data Science & IA** - *Evolve Academy*  
-> **VersiÃ³n del Alcance:** v8 (Cierre de Negocio y Despliegue MLOps)
-
----
-
-## ð¯ 1. DescripciÃ³n y Contexto de Negocio
-
-En el sector BPO y soporte tÃ©cnico de telecomunicaciones, la clasificaciÃ³n inicial de incidencias en el Nivel 1 (Front Office) es crÃ­tica. El lenguaje libre y ambiguo del cliente provoca errores humanos frecuentes al asignar la **Tripleta de Enrutamiento (Cola + Tipo + Prioridad)** en el CRM. Un error genera un **falso escalado** hacia el Nivel 2, consumiendo recursos tÃ©cnicos costosos, disparando el AHT (*Average Handling Time*) y frustrando al cliente.
-
-**SITOR** nace para resolver este problema. Mediante **Procesamiento de Lenguaje Natural (NLP)** y **Deep Learning**, el sistema analiza el texto crudo del ticket y actÃºa como un **interceptor en tiempo real**, auditando la tripleta asignada por el agente y automatizando el enrutamiento o alertando de desviaciones, siempre bajo una **Regla de Pasividad Estricta** (si el modelo duda, aborta la operaciÃ³n para no inyectar ruido sintÃ©tico).
-
-El objetivo matemÃ¡tico de SITOR es **predecir la combinaciÃ³n exacta de las 3 variables (altÃ­sima dimensionalidad)** para maximizar la automatizaciÃ³n y el ROI del negocio, siendo un sistema escalable y agnÃ³stico a la taxonomÃ­a especÃ­fica de cualquier CRM.
+> **Proyecto de Fin de Máster (PFM)**  
+> **Máster en Data Science & IA** - *Evolve Academy*  
+> **Versión del Alcance:** v8 (Cierre de Negocio y Despliegue MLOps - Sector BPO Telco)
 
 ---
 
-## âï¸ 2. Hitos Alcanzados (EvoluciÃ³n de la Arquitectura)
+## 🎯 1. Valor de Negocio y Macro-Eficiencia (Executive Summary)
 
-El ecosistema algorÃ­tmico ha atravesado una evoluciÃ³n desde modelos lineales hasta arquitecturas masivas de Transformers para romper el techo de cristal geomÃ©trico del negocio.
+En el sector BPO y soporte técnico de telecomunicaciones, el enrutamiento manual de incidencias en el Front Office (Nivel 1) genera cuellos de botella y falsos escalados. SITOR audita, intercepta y resuelve en tiempo real el enrutamiento de la **Tripleta Operativa (56 colas Telco)** mediante Deep Learning, bajo una regla de pasividad estricta (el modelo solo interviene ante alta certeza matemática).
 
-### ð¹ Fase 1 y 2: Baselines de Machine Learning ClÃ¡sico (TF-IDF)
-* **IngenierÃ­a de la Tripleta:** FusiÃ³n de `Queue`, `Type` y `Priority` en una variable objetivo combinada.
-* **VectorizaciÃ³n y Modelado:** TransformaciÃ³n del corpus a una matriz dispersa `TF-IDF`. Random Forest se coronÃ³ como el campeÃ³n de la IA clÃ¡sica, pero demostrÃ³ empÃ­ricamente la asfixia del enfoque estadÃ­stico (incapacidad semÃ¡ntica profunda).
+### 🔹 Veredicto de Producción (Hold-Out Ciego)
+Evaluado sobre una matriz de cuarentena del 20% (3.081 tickets), **SITOR automatiza un 8.63% del tráfico del Nivel 1 garantizando una Precisión Condicionada del 83.46%**. 
 
-### ð¹ Fase 3: IntervenciÃ³n TaxonÃ³mica y Limpieza de Ruido
-* **AuditorÃ­a de Clases:** El negocio presentaba un desbalance extremo (88x). 
-* **Colapso SemÃ¡ntico:** Se agruparon 13 colas residuales de baja frecuencia en una macro-clase `Derivacion_Manual_Minoritaria`, estabilizando el mapa de salidas en **89 clases** operativas viables.
-
-### ð¹ Fase 4 y 5: Deep Learning y TransiciÃ³n a GPU (RoBERTa)
-* **Sequence Classification Nativo:** Despliegue de una arquitectura densa basada en **RoBERTa-base (125M)** entrenada sobre GPUs T4/A100.
-* **Balanceo MatemÃ¡tico:** InyecciÃ³n de penalizaciÃ³n mediante **raÃ­z cuadrada** de frecuencias (`1 / sqrt(frecuencias)`), protegiendo minorÃ­as sin destruir mayorÃ­as.
-* **ValidaciÃ³n Hold-Out Maestro:** Entrenamiento *Full-Shot* sobre los 23.000 tickets certificando la viabilidad matemÃ¡tica.
-
-### ð¹ Fase 6: Cierre Financiero y OptimizaciÃ³n de Break-Even
-* **Simulador de EstrÃ©s:** EjecuciÃ³n de Jupyter local procesando la telemetrÃ­a probabilÃ­stica de la Fase 5.
-* **Punto de OperaciÃ³n DinÃ¡mico:** LocalizaciÃ³n matemÃ¡tica del *Break-Even* financiero bajo un rÃ©gimen de estrÃ©s humano (25% de error en FO).
-* **Macro-Eficiencia:** Desglose del ROI tangible y blindaje intangible (prevenciÃ³n de SLA breaches, amortizaciÃ³n de attrition).
+El sistema no busca una micro-eficiencia basada en el ahorro directo de nóminas, sino operar como un verdadero **Cortafuegos Operativo**:
+* **Prevención de Penalizaciones (SLA):** Evita el "efecto ping-pong" de tickets mal enrutados, recortando el *Mean Time to Resolve* (MTTR) y previniendo penalizaciones económicas por ruptura de contrato.
+* **Amortización de Rotación (*Attrition*):** Asimila la entropía y el exceso de error humano generados durante los picos de contratación masiva de perfiles junior.
+* **Desestrangulamiento del Nivel 2:** Limpia el *backlog* técnico de ruido administrativo, permitiendo al BPO absorber mayor volumen de negocio sin requerir nuevos FTEs.
+* **Protección del NPS:** Agilizar el cauce correcto incrementa la Tasa de Resolución al Primer Contacto (*FCR*), mitigando de forma directa el riesgo de fuga (*Churn*).
 
 ---
 
-## ð 3. Veredicto de ProducciÃ³n (MÃ©tricas Finales)
+## ⚙️ 2. Justificación Algorítmica y Músculo Técnico (Data Science)
 
-El modelo maestro, evaluado contra un *Test Set* ciego de cuarentena (20% de los datos), arrojÃ³ las siguientes mÃ©tricas definitivas al aplicar el umbral de confianza Ã³ptimo extraÃ­do algorÃ­tmicamente:
+El desarrollo del modelo central implicó la deconstrucción empírica de los baselines estadísticos a favor de arquitecturas basadas en atención semántica masiva.
 
-* **Volumen Intervenido:** Secuestro automatizado de mÃ¡s de 2.000 tickets tÃ³xicos mensuales antes de impactar el L2.
-* **F1-Macro:** **0.3811** (DemostraciÃ³n de estabilidad geomÃ©trica a travÃ©s de las 89 clases).
-* **PrecisiÃ³n Condicionada IA:** Sobre el **85%** en su zona de alta certidumbre.
-* **Ahorro Financiero Neto:** ReducciÃ³n contundente del coste del Back Office tras compensar los daÃ±os por falsos positivos.
+### 🔹 Bake-Off de Modelos: La Ilusión del F1
+El Machine Learning clásico (Random Forest + TF-IDF) alcanzó un F1-Macro competitivo (0.58), pero **fracasó operativamente en la calibración probabilística**. Al imponer el umbral estricto de seguridad dictado por Negocio (Softmax > 0.85), el Random Forest colapsó a un 0.00% de automatización, convirtiéndose en un pasivo. 
 
----
+**RoBERTa (125M de parámetros)** se despliega porque, aunque su F1 global se resiente, su arquitectura semántica genera distribuciones de probabilidad más afiladas y calibradas (menor entropía cruzada / Log-Loss de 1.75), siendo el único modelo capaz de superar el umbral de pasividad de forma segura y productivizable.
 
-## âï¸ 4. Arquitectura MLOps Desplegada (Fase 7)
+### 🔹 Ingeniería en la Función de Pérdida (PyTorch)
+El dominio Telco sufre un desbalanceo extremo. Para evitar el colapso del hiperplano predictivo hacia las clases mayoritarias, no nos limitamos a instanciar el modelo base: **se sobreescribió el orquestador nativo de Hugging Face**.
+Se inyectó un tensor dinámico en CUDA (raíz cuadrada inversa de frecuencias) directamente en el cálculo de la *Cross-Entropy Loss*. Además, este tensor se recalcula estrictamente dentro de cada iteración del bucle *K-Fold* para neutralizar cualquier vulnerabilidad de *Data Leakage*.
 
-El proyecto ha concluido su ciclo de vida de ingenierÃ­a con el empaquetado de un ecosistema de microservicios robusto y testeado:
-
-1. **Backend REST (Event-Driven):** Empaquetado del tensor en un servidor `FastAPI` sÃ­ncrono (protegiendo el Event Loop) en `src/api/`. La API expone el endpoint `/predict` con validaciÃ³n estricta de Pydantic, diseÃ±ado para integrarse con CRMs. Implementa el Cortafuegos de Pasividad (devolviendo la tripleta humana original ante alta entropÃ­a).
-2. **Torre de Control (Streamlit):** Dashboard multipestaÃ±a en `src/frontend/` que sirve de interfaz de auditorÃ­a:
-   * **Live Observability:** Feed de streaming en tiempo real para el NOC, clonando la estÃ©tica MLOps (Figma). Muestra intercepciones exitosas (verde neÃ³n con tachado rojo de la tripleta humana) y mitiga el sesgo de supervivencia mostrando bloqueos por pasividad (gris).
-   * **API Sandbox:** Consola interactiva para inyectar JSONs manuales y auditar el contrato de datos, la latencia (ms) y el comportamiento de la red PyTorch en crudo.
+### 🔹 Auditoría de Fricción Taxonómica
+El análisis forense de la matriz de colisiones evidenció que el error residual de la red neuronal no es estocástico, sino que responde a ruido estructural (*Ground Truth Noise*) heredado del etiquetado humano de origen. Las áreas de fricción se concentran de forma sistemática en las fronteras procedimentales ambiguas (ej: la delgada línea entre 'Avería General' y 'Soporte Técnico'). El modelo no se equivoca; expone las deficiencias del negocio.
 
 ---
 
-## ð ï¸ 5. Stack TecnolÃ³gico
+## 🛠️ 3. Stack Tecnológico
 
-| Ãrea | TecnologÃ­a |
+| Área | Tecnología |
 | :--- | :--- |
 | **NLP & Deep Learning** | `Hugging Face`, `PyTorch`, `RoBERTa` |
-| **AnÃ¡lisis de Datos**| `pandas`, `NumPy`, `Seaborn` |
-| **AceleraciÃ³n Hardware** | GPUs NVIDIA (T4 / A100) |
+| **Análisis de Datos**| `pandas`, `NumPy`, `Seaborn` |
+| **Aceleración Hardware** | GPUs NVIDIA (A100) |
 | **Backend API**| `FastAPI`, `Uvicorn`, `Pydantic` |
 | **Frontend UI** | `Streamlit` |
 
 ---
 
-## ð 6. Estructura del Repositorio
+## 📁 4. Estructura del Repositorio
+
+El pipeline garantiza la reproducibilidad completa, abarcando desde la ingesta del parquet crudo hasta la inferencia en un endpoint desacoplado.
 
 ```text
 SITOR/
-âââ data/
-â   âââ gold/                # Parquets finales purgados (89 clases)
-â   âââ resultados/          # CSVs de telemetrÃ­a extraÃ­dos del Cloud
-âââ docs/                    # Manifiestos arquitectÃ³nicos y hojas de ruta
-â   âââ historico_y_borradores/# Propuestas obsoletas (Ignorado por Git)
-â   âââ parametros/          # Constantes del BPO para el simulador financiero
-â   âââ 11_Arquitectura_Despliegue_Fase7.md # Especificaciones definitivas MLOps
-âââ notebook/                # Notebooks de experimentaciÃ³n (Jupyter)
-âââ src/                     # CÃ³digo fuente de despliegue MLOps
-â   âââ api/                 # Microservicio backend (FastAPI + Pydantic)
-â   âââ frontend/            # Dashboard multipestaÃ±a (Streamlit)
-âââ README.md                
-âââ .gitignore               
+├── data/
+│   ├── gold/                # Parquets finales purgados (56 clases Telco)
+│   └── raw/                 # Origen crudo de tickets BPO
+├── docs/                    # Manifiestos arquitectónicos y hojas de ruta
+├── notebook/                # Cuadernos Jupyter del pipeline end-to-end
+├── results/                 # Predicciones ciegas Hold-Out
+├── metrics/                 # Telemetría de K-Fold y matriz de confusión
+├── models/                  # Pesos y tokenizador de RoBERTa para producción
+├── src/                     # Código fuente de despliegue MLOps
+│   ├── api/                 # Microservicio backend (FastAPI + Pydantic)
+│   └── frontend/            # Dashboard multipestaña (Streamlit)
+├── README.md                
+└── .gitignore               
 ```
 
 ---
 
-## ?? 7. Guía de Ejecución Rápida (Cómo usar SITOR)
+## 🚀 5. Guía de Ejecución Rápida (Cómo usar SITOR)
 
 Para levantar el ecosistema completo en tu máquina local:
 
@@ -118,4 +97,3 @@ Abre una **segunda terminal** (dejando la API corriendo de fondo) y ejecuta:
 streamlit run src/frontend/app.py
 ```
 Se abrirá automáticamente tu navegador en `http://localhost:8501`. Desde la pestaña "API Sandbox" podrás inyectar tickets manualmente y ver la predicción de la red neuronal en tiempo real.
-

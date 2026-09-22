@@ -17,6 +17,13 @@ data/features/*.csv
 data/gold/*.parquet
 data/resultados/*.csv
 
+# Resultados y métricas del modelo (CSV y Excel)
+metrics/*.csv
+metrics/*.xlsx
+results/*.csv
+results/*.xlsx
+results/*.parquet
+
 # Excepciones
 !data/processed/tracker_en.csv
 !data/processed/tracker_es.csv
