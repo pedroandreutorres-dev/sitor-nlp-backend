@@ -3,279 +3,369 @@ import pandas as pd
 import requests
 import json
 import time
+import os
+import shutil
+from pathlib import Path
 
-# 1. Parámetros globales de la interfaz
-st.set_page_config(page_title="SITOR Control Tower", layout="wide")
-API_URL = "http://localhost:8000/api/v1/predict"
+# --- CONFIGURACIÓN DE PÁGINA ---
+st.set_page_config(page_title="SITOR | Control Tower", page_icon="🛡️", layout="wide", initial_sidebar_state="collapsed")
 
-# 2. Inicialización de la memoria de sesión (Persistencia entre recargas)
+# Estilos CSS Corporativos (Clon de sitor1.png y sitor2.png)
+st.markdown('''
+<style>
+    /* Fondo principal y tipografía base */
+    .stApp { background-color: #0b0e14; color: #a0aabf; font-family: 'JetBrains Mono', 'Courier New', monospace; }
+    
+    /* Cabecera y Tabs */
+    .stTabs [data-baseweb="tab-list"] { background-color: #0b0e14; border-bottom: 1px solid #1e293b; }
+    .stTabs [data-baseweb="tab"] { color: #64748b; font-weight: bold; }
+    .stTabs [aria-selected="true"] { color: #10b981 !important; border-bottom: 2px solid #10b981 !important; }
+    
+    /* KPIs Top Row */
+    .kpi-container { background-color: #0f172a; border: 1px solid #1e293b; padding: 15px; border-radius: 4px; margin-bottom: 20px; }
+    .kpi-label { color: #475569; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+    .kpi-value { color: #f8fafc; font-size: 2rem; font-weight: bold; }
+    .kpi-sub { color: #10b981; font-size: 0.75rem; }
+    
+    /* Grid de Logs (Tab 1) */
+    .log-row { background-color: #0b0e14; padding: 15px 0; border-bottom: 1px solid #1e293b; display: flex; align-items: stretch; font-size: 0.85rem;}
+    .col-ticket { flex: 3; padding-right: 20px; }
+    .col-human { flex: 2; padding-right: 20px; }
+    .col-sitor { flex: 2; padding-right: 20px; }
+    .col-conf { flex: 1; text-align: right; }
+    
+    /* Textos y Badges */
+    .text-excerpt { color: #64748b; margin-top: 8px; line-height: 1.4; font-family: sans-serif; font-size: 0.8rem; }
+    .text-red-strike { color: #ef4444; text-decoration: line-through; display: block; font-family: monospace; }
+    .text-green { color: #10b981; display: block; font-weight: bold; font-family: monospace; }
+    .text-gray { color: #64748b; display: block; font-family: monospace; }
+    .badge-override { background-color: #064e3b; color: #34d399; padding: 2px 6px; border-radius: 2px; font-size: 0.7rem; font-weight: bold; border: 1px solid #059669; }
+    .badge-maintained { background-color: #1e293b; color: #94a3b8; padding: 2px 6px; border-radius: 2px; font-size: 0.7rem; font-weight: bold; border: 1px solid #334155; }
+    .conf-huge-green { color: #10b981; font-size: 1.5rem; font-weight: bold; }
+    .conf-huge-gray { color: #64748b; font-size: 1.5rem; font-weight: bold; }
+    .header-title { font-weight: bold; color: #475569; font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+    
+    /* Cajas estilo JSON / Payload */
+    .payload-box { background-color: #0f172a; border: 1px solid #1e293b; padding: 10px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #e2e8f0; height: 350px; overflow-y: auto; }
+</style>
+''', unsafe_allow_html=True)
+
+API_URL_PREDICT = "http://localhost:8000/api/v1/predict"
+API_URL_EXPLAIN = "http://localhost:8000/api/v1/explain"
+
+# Rutas absolutas a prueba de fallos (Bulletproof absolute paths)
+_current_dir = Path(__file__).resolve().parent
+_project_root = _current_dir.parent.parent
+DIR_INBOX = _project_root / "data" / "inbox"
+DIR_OUTBOX = _project_root / "data" / "outbox"
+DIR_OUTBOX.mkdir(parents=True, exist_ok=True)
+
+st.markdown('<div style="display:flex; align-items:center; gap: 15px; margin-bottom: 20px;"><h2 style="color:white; margin:0;">🛡️ SITOR</h2><span style="color:#64748b; font-size:0.9rem;">Autonomous Ticket Interception · Control Tower</span></div>', unsafe_allow_html=True)
+
+# Inicialización de contadores de sesión para KPIs dinámicos
+if 'total_procesados' not in st.session_state:
+    st.session_state.total_procesados = 0
+if 'total_overrides' not in st.session_state:
+    st.session_state.total_overrides = 0
+if 'processing_batch' not in st.session_state:
+    st.session_state.processing_batch = False
 if 'log_history' not in st.session_state:
     st.session_state.log_history = []
-if 'current_index' not in st.session_state:
-    st.session_state.current_index = 0
-if 'streaming_active' not in st.session_state:
-    st.session_state.streaming_active = False
-if 'connection_error' not in st.session_state:
-    st.session_state.connection_error = None
-if 'kpi_overrides' not in st.session_state:
-    st.session_state.kpi_overrides = 0
-if 'kpi_maintained' not in st.session_state:
-    st.session_state.kpi_maintained = 0
 
-def process_next_ticket(df):
-    """
-    Extracción de la siguiente fila del dataset, empaquetado y consumo REST.
-    """
-    row = df.iloc[st.session_state.current_index]
-    
-    # Mapeo de columnas al contrato Pydantic exigido
-    payload = {
-        "ticket_id": str(row.get("ticket_id", f"TKT-AUTO-{st.session_state.current_index}")),
-        "raw_text": str(row.get("interaction_content", "Texto vacío de prueba debido a columna no encontrada.")),
-        "human_queue": str(row.get("Assignment_Group", "UNKNOWN")),
-        "human_type": str(row.get("Interaction_Type", "UNKNOWN")),
-        "human_priority": str(row.get("Priority", "UNKNOWN"))
-    }
-    
-    try:
-        response = requests.post(API_URL, json=payload, timeout=3)
-        if response.status_code == 200:
-            data = response.json()
-            
-            # Inyección de metadatos locales para el frontend (el backend no los devuelve para ahorrar ancho de banda)
-            data['raw_excerpt'] = payload['raw_text'][:70] + "..." if len(payload['raw_text']) > 70 else payload['raw_text']
-            data['h_queue'] = payload['human_queue']
-            data['h_type'] = payload['human_type']
-            data['h_priority'] = payload['human_priority']
-            
-            st.session_state.log_history.insert(0, data)
-            
-            if data.get('verdict') == "OVERRIDE_APPROVED":
-                st.session_state.kpi_overrides += 1
-            else:
-                st.session_state.kpi_maintained += 1
-                
-            if len(st.session_state.log_history) > 10:
-                st.session_state.log_history.pop()
-            st.session_state.connection_error = None
-        else:
-            st.session_state.streaming_active = False
-            st.session_state.connection_error = f"Error HTTP {response.status_code}"
-            return
-    except requests.exceptions.RequestException:
-        st.session_state.streaming_active = False
-        st.session_state.connection_error = "Conexión rechazada. Servidor inalcanzable."
-        return 
-        
-    st.session_state.current_index += 1
+tab1, tab2 = st.tabs(["Live Observability READ-ONLY", "API Sandbox INTERACTIVE"])
 
-# 3. Construcción del Layout
-st.title("SITOR | Autonomous Ticket Interception")
-
-# Inyección de CSS para clonar el aspecto del Mockup en Figma
-st.markdown("""
-<style>
-.log-row { display: flex; justify-content: space-between; border-bottom: 1px solid #2B2B2B; padding: 15px 0; font-family: 'Courier New', Courier, monospace; }
-.col-ticket { width: 30%; padding-right: 15px; }
-.col-human { width: 25%; }
-.col-sitor { width: 25%; }
-.col-conf { width: 20%; text-align: right; }
-.badge-override { background-color: #003300; color: #00FF00; padding: 2px 6px; font-size: 0.85em; border-radius: 3px; font-weight: bold; border: 1px solid #00FF00; }
-.badge-maintained { background-color: #222222; color: #888888; padding: 2px 6px; font-size: 0.85em; border-radius: 3px; font-weight: bold; border: 1px solid #555555; }
-.text-red-strike { color: #FF4444; text-decoration: line-through; display: block; font-size: 0.85em; margin-bottom: 2px; }
-.text-green { color: #00FF00; display: block; font-size: 0.85em; font-weight: bold; margin-bottom: 2px; }
-.text-gray { color: #888888; display: block; font-size: 0.85em; margin-bottom: 2px; }
-.text-excerpt { color: #AAAAAA; font-size: 0.8em; margin-top: 8px; line-height: 1.3; }
-.conf-huge-green { font-size: 1.8em; font-weight: bold; color: #00FF00; }
-.conf-huge-gray { font-size: 1.8em; font-weight: bold; color: #888888; }
-.header-title { color: #555555; font-size: 0.7em; letter-spacing: 1px; margin-bottom: 10px; font-weight: bold; }
-</style>
-""", unsafe_allow_html=True)
-
-tab1, tab2 = st.tabs(["Live Observability [READ-ONLY]", "API Sandbox [INTERACTIVE]"])
-
-# --- PESTAÑA 1: OBSERVABILIDAD DE FLUJOS (NOC) ---
+# --- PESTAÑA 1: LIVE OBSERVABILITY ---
 with tab1:
-    # Integración de los 4 KPIs exactos del Mockup
-    total_processed = st.session_state.current_index
-    tasa_automatizacion = (st.session_state.kpi_overrides / total_processed * 100) if total_processed > 0 else 0.0
-    horas_liberadas = st.session_state.kpi_overrides * (3.0 / 60.0) # Simulando 3 minutos de AHT por ticket
+    # Contenedores para actualización en vivo (sin st.rerun)
+    kpi_col1, kpi_col2, kpi_col3, kpi_col4 = st.columns(4)
+    ph_kpi1 = kpi_col1.empty()
+    ph_kpi2 = kpi_col2.empty()
+    ph_kpi3 = kpi_col3.empty()
+    ph_kpi4 = kpi_col4.empty()
     
-    col_kpi1, col_kpi2, col_kpi3, col_kpi4 = st.columns(4)
-    col_kpi1.metric("Tickets Interceptados", f"{st.session_state.kpi_overrides}")
-    col_kpi2.metric("Tasa Automatización", f"{tasa_automatizacion:.1f} %")
-    col_kpi3.metric("Umbral de Seguridad", "0.85", delta="Softmax Limit", delta_color="off")
-    col_kpi4.metric("Horas L2 Liberadas", f"{horas_liberadas:.1f} hrs")
-    
-    st.divider()
-
-    @st.cache_data
-    def load_data():
-        try:
-            df = pd.read_csv("data/resultados/predicciones_holdout_roberta.csv")
-            return df.fillna("UNKNOWN")
-        except FileNotFoundError:
-            return pd.DataFrame()
-            
-    df_raw = load_data()
-    
-    col_ctrl1, col_ctrl2 = st.columns(2)
-    with col_ctrl1:
-        if st.button("Iniciar / Detener Streaming"):
-            st.session_state.streaming_active = not st.session_state.streaming_active
-            st.session_state.connection_error = None 
-            
-    with col_ctrl2:
-        st.write(f"Registro en proceso: {st.session_state.current_index} / {len(df_raw)}")
-
-    if st.session_state.connection_error:
-        st.error(st.session_state.connection_error)
-
-    # Contenedor estático visual
-    log_container = st.container()
-    with log_container:
-        # Cabeceras del Grid
-        st.markdown('''
-        <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #333; padding-bottom: 5px;">
-            <div class="col-ticket header-title">TICKET / EXCERPT</div>
-            <div class="col-human header-title">HUMAN ROUTING (ERROR)</div>
-            <div class="col-sitor header-title">SITOR OVERRIDE / CORRECTED</div>
-            <div class="col-conf header-title">CONFIDENCE</div>
-        </div>
-        ''', unsafe_allow_html=True)
+    def render_kpis():
+        intercepted = st.session_state.total_overrides
+        auto_rate = (intercepted / st.session_state.total_procesados * 100) if st.session_state.total_procesados > 0 else 0.0
+        time_liberated_hrs = (intercepted * 120) / 3600
         
-        # Iteración de registros
-        for ticket in st.session_state.log_history:
+        ph_kpi1.markdown(f'<div class="kpi-container"><div class="kpi-label">TICKETS INTERCEPTED (SESSION)</div><div class="kpi-value">{intercepted}</div><div class="kpi-sub" style="color:#64748b;">Out of {st.session_state.total_procesados} processed</div></div>', unsafe_allow_html=True)
+        ph_kpi2.markdown(f'<div class="kpi-container"><div class="kpi-label">CURRENT AUTOMATION RATE</div><div class="kpi-value">{auto_rate:.1f}%</div><div class="kpi-sub" style="color:#64748b;">Live session avg</div></div>', unsafe_allow_html=True)
+        ph_kpi3.markdown(f'<div class="kpi-container"><div class="kpi-label">BACK-OFFICE TIME LIBERATED</div><div class="kpi-value" style="color:#10b981;">{time_liberated_hrs:.2f} hrs</div><div class="kpi-sub" style="color:#64748b;">120 s AHT delta × volume</div></div>', unsafe_allow_html=True)
+        ph_kpi4.markdown('<div class="kpi-container"><div class="kpi-label">AI PASSIVITY THRESHOLD</div><div class="kpi-value">0.85</div><div class="kpi-sub" style="color:#64748b;">Softmax min · global config</div></div>', unsafe_allow_html=True)
+
+    archivos_inbox = list(DIR_INBOX.glob("*.json"))
+    
+    # Auto-arranque si hay archivos pendientes
+    if archivos_inbox and not st.session_state.processing_batch:
+        st.session_state.processing_batch = True
+        st.rerun()
+
+    st.markdown('<hr style="border-color:#1e293b; margin: 10px 0;">', unsafe_allow_html=True)
+    
+    st.markdown('''
+    <div style="display: flex; justify-content: space-between;">
+        <div class="col-ticket header-title">TICKET / EXCERPT</div>
+        <div class="col-human header-title">HUMAN ROUTING × ERROR</div>
+        <div class="col-sitor header-title">SITOR OVERRIDE ✓ CORRECTED</div>
+        <div class="col-conf header-title">CONFIDENCE</div>
+    </div>
+    ''', unsafe_allow_html=True)
+    
+    ph_logs = st.empty()
+    
+    def render_logs():
+        html_content = ""
+        for ticket in reversed(st.session_state.log_history):
             conf_pct = ticket.get('softmax_confidence', 0) * 100
             verdict = ticket.get('verdict')
-            
             if verdict == "OVERRIDE_APPROVED":
-                html_block = f'''
+                html_content += f'''
                 <div class="log-row">
                     <div class="col-ticket">
-                        <strong style="color: #00FF00; font-size: 1.1em;">{ticket.get('ticket_id')}</strong><br>
+                        <strong style="color: #f8fafc;">● {ticket.get('ticket_id')}</strong> <span style="color:#475569; font-size:0.7rem;">JUST NOW</span><br>
                         <span class="badge-override">OVERRIDE</span>
                         <div class="text-excerpt">{ticket.get('raw_excerpt')}</div>
                     </div>
                     <div class="col-human">
+                        <span class="text-gray" style="font-size:0.7rem;">HUMAN ROUTING</span>
                         <span class="text-red-strike">{ticket.get('h_queue')}</span>
                         <span class="text-red-strike">{ticket.get('h_type')}</span>
                         <span class="text-red-strike">{ticket.get('h_priority')}</span>
                     </div>
                     <div class="col-sitor">
-                        <span class="text-green">&#8594; {ticket.get('sitor_queue')}</span>
+                        <span class="text-green" style="font-size:0.7rem;">SITOR OVERRIDE</span>
+                        <span class="text-green">→ {ticket.get('sitor_queue')}</span>
                         <span class="text-green">{ticket.get('sitor_type')}</span>
                         <span class="text-green">{ticket.get('sitor_priority')}</span>
                     </div>
                     <div class="col-conf">
                         <div class="conf-huge-green">{conf_pct:.1f}%</div>
-                        <div class="text-gray" style="font-size: 0.7em;">&#8593; OVER THRESHOLD</div>
-                    </div>
-                </div>
-                '''
-            elif verdict == "VERIFIED_MAINTAINED":
-                html_block = f'''
-                <div class="log-row">
-                    <div class="col-ticket">
-                        <strong style="color: #00FF00; font-size: 1.1em;">{ticket.get('ticket_id')}</strong><br>
-                        <span class="badge-override" style="background-color: #003333; color: #00FFFF; border-color: #00FFFF;">VERIFIED</span>
-                        <div class="text-excerpt">{ticket.get('raw_excerpt')}</div>
-                    </div>
-                    <div class="col-human">
-                        <span class="text-gray" style="color: #00FFFF;">{ticket.get('h_queue')}</span>
-                        <span class="text-gray" style="color: #00FFFF;">{ticket.get('h_type')}</span>
-                        <span class="text-gray" style="color: #00FFFF;">{ticket.get('h_priority')}</span>
-                    </div>
-                    <div class="col-sitor">
-                        <span class="text-gray" style="font-size: 0.8em; padding: 2px 5px; border: 1px solid #333; border-radius: 3px;">NO CHANGE (AGREEMENT)</span>
-                    </div>
-                    <div class="col-conf">
-                        <div class="conf-huge-green" style="color: #00FFFF;">{conf_pct:.1f}%</div>
-                        <div class="text-gray" style="font-size: 0.7em;">&#10003; AI & HUMAN MATCH</div>
+                        <div class="text-green" style="font-size: 0.7rem;">↑ OVER THRESHOLD</div>
                     </div>
                 </div>
                 '''
             else:
-                html_block = f'''
+                reason_text = "⊙ Verified by SITOR (Match)" if conf_pct >= 85 else "⊙ Confidence below passivity floor"
+                conf_badge = "✓ VERIFIED" if conf_pct >= 85 else "↓ BELOW 0.85"
+                html_content += f'''
                 <div class="log-row">
                     <div class="col-ticket">
-                        <strong style="color: #888888; font-size: 1.1em;">{ticket.get('ticket_id')}</strong><br>
+                        <strong style="color: #64748b;">● {ticket.get('ticket_id')}</strong> <span style="color:#475569; font-size:0.7rem;">JUST NOW</span><br>
                         <span class="badge-maintained">HUMAN_ROUTING_MAINTAINED</span>
                         <div class="text-excerpt">{ticket.get('raw_excerpt')}</div>
                     </div>
                     <div class="col-human">
+                        <span class="text-gray" style="font-size:0.7rem;">ROUTING DECISION</span>
                         <span class="text-gray">{ticket.get('h_queue')}</span>
-                        <span class="text-gray">{ticket.get('h_type')}</span>
-                        <span class="text-gray">{ticket.get('h_priority')}</span>
+                        <span class="text-gray">{ticket.get('h_type')} · {ticket.get('h_priority')}</span>
+                        <span class="text-gray" style="font-size:0.7rem; margin-top:5px;">{reason_text}</span>
                     </div>
                     <div class="col-sitor">
-                        <span class="text-gray" style="font-size: 0.8em; padding: 2px 5px; border: 1px solid #333; border-radius: 3px;">NO CHANGE (PASSIVITY)</span>
+                        <span class="badge-maintained" style="background:transparent;">NO CHANGE</span>
                     </div>
                     <div class="col-conf">
                         <div class="conf-huge-gray">{conf_pct:.1f}%</div>
-                        <div class="text-gray" style="font-size: 0.7em;">&#8595; BELOW 0.85 - PASSIVITY</div>
+                        <div class="text-gray" style="font-size: 0.7rem;">{conf_badge}</div>
                     </div>
                 </div>
                 '''
-            st.markdown(html_block, unsafe_allow_html=True)
-            
-    # Gestión controlada del Event Loop del Framework
-    if st.session_state.streaming_active:
-        if st.session_state.current_index < len(df_raw):
-            process_next_ticket(df_raw)
-            # Doble comprobación: si la petición falló, streaming_active pasó a False dentro de la función
-            if st.session_state.streaming_active:
-                time.sleep(1.5) 
-                st.rerun()
-        else:
-            # Apagado orgánico: Fin del Dataset
-            st.session_state.streaming_active = False
-
-# --- PESTAÑA 2: CONSOLA DE AUDITORÍA REST ---
-with tab2:
-    st.markdown("### Consola de Inyección (API Sandbox)")
-    
-    col_izq, col_der = st.columns(2)
-    
-    with col_izq:
-        default_payload = {
-            "ticket_id": "TKT-TEST-001",
-            "raw_text": "El sistema SAP no permite facturar desde esta mañana. Da un dump ABAP continuo.",
-            "human_queue": "GENERAL_IT",
-            "human_type": "Service Request",
-            "human_priority": "P3 - Low"
-        }
-        json_input = st.text_area("Payload del Webhook (Estructura JSON)", value=json.dumps(default_payload, indent=4), height=250)
-        btn_post = st.button("Ejecutar POST /predict", type="primary")
+        ph_logs.markdown(html_content, unsafe_allow_html=True)
         
-    with col_der:
-        if btn_post:
+    # Inicial render
+    render_kpis()
+    render_logs()
+
+    # Event Loop Spooling
+    if st.session_state.processing_batch and archivos_inbox:
+        archivo_actual = archivos_inbox[0]
+        try:
+            with open(archivo_actual, 'r', encoding='utf-8') as f:
+                lote = json.load(f)
+                
+            for item in lote:
+                raw_tripleta = item.get('target_tripleta') or 'Customer Service_Service Request_P3 - Low'
+                tripleta = raw_tripleta.split('_')
+                h_queue = tripleta[0] if len(tripleta) > 0 else "UNKNOWN"
+                h_type = tripleta[1] if len(tripleta) > 1 else "UNKNOWN"
+                h_priority = tripleta[2] if len(tripleta) > 2 else "UNKNOWN"
+                texto_raw = item.get('body', item.get('full_text', ''))
+                
+                payload = {
+                    "ticket_id": item.get('ticket_id', 'UNKNOWN'),
+                    "raw_text": texto_raw,
+                    "human_queue": h_queue,
+                    "human_type": h_type,
+                    "human_priority": h_priority
+                }
+                
+                try:
+                    resp = requests.post(API_URL_PREDICT, json=payload, timeout=2)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        st.session_state.total_procesados += 1
+                        if data.get('verdict') == "OVERRIDE_APPROVED":
+                            st.session_state.total_overrides += 1
+                            
+                        st.session_state.log_history.append({
+                            'ticket_id': payload['ticket_id'],
+                            'raw_excerpt': texto_raw[:120] + "..." if len(texto_raw) > 120 else texto_raw,
+                            'h_queue': h_queue,
+                            'h_type': h_type,
+                            'h_priority': h_priority,
+                            'verdict': data.get('verdict'),
+                            'softmax_confidence': data.get('softmax_confidence'),
+                            'sitor_queue': data.get('sitor_queue'),
+                            'sitor_type': data.get('sitor_type'),
+                            'sitor_priority': data.get('sitor_priority')
+                        })
+                        if len(st.session_state.log_history) > 10:
+                            st.session_state.log_history.pop(0)
+                        
+                        # Actualizar interfaz EN VIVO
+                        render_kpis()
+                        render_logs()
+                        
+                except Exception as e:
+                    st.error(f"API Error: {e}")
+                    st.session_state.processing_batch = False
+                    st.stop()
+                    
+                time.sleep(0.1) # Pausa dramática para simular procesamiento en vivo sin agotar CPU visualmente
+                
+            shutil.move(str(archivo_actual), str(DIR_OUTBOX / archivo_actual.name))
+            st.session_state.processing_batch = False
+            st.rerun()
+            
+        except Exception as e:
+            st.error(f"JSON Error: {e}")
+            st.session_state.processing_batch = False
+
+# --- PESTAÑA 2: API SANDBOX ---
+with tab2:
+    st.markdown('<div style="margin-bottom:20px;"></div>', unsafe_allow_html=True)
+    
+    # Grid principal 50/50
+    col_req, col_res = st.columns(2)
+    
+    with col_req:
+        st.markdown('<div class="header-title">● REQUEST PAYLOAD</div>', unsafe_allow_html=True)
+        
+        # Interfaz Humana
+        txt_body = st.text_area("Cuerpo del Ticket (raw_text)", height=100, value="URGENT — SAP SM50 ABAP dump since 06:00 CET. All batch jobs blocked. Payroll run failing for 240 employees. Need immediate escalation.")
+        
+        # Extraer tripletas reales del modelo para los selectores
+        # Ruta relativa limpia al diccionario de entrenamiento
+        mapping_path = _project_root / "src" / "models" / "roberta_corporativo" / "label_mapping.json"
+        
+        colas, tipos, prioridades = ["UNKNOWN"], ["UNKNOWN"], ["UNKNOWN"]
+        if mapping_path.exists():
+            with open(mapping_path, "r", encoding="utf-8") as f:
+                mapping = json.load(f)
+            c_set, t_set, p_set = set(), set(), set()
+            for v in mapping.values():
+                if v == "OUT_OF_SCOPE":
+                    continue
+                parts = v.split('_')
+                if len(parts) == 3:
+                    c_set.add(parts[0])
+                    t_set.add(parts[1])
+                    p_set.add(parts[2])
+            colas = sorted(list(c_set))
+            tipos = sorted(list(t_set))
+            prioridades = sorted(list(p_set))
+            
+        c1, c2, c3 = st.columns(3)
+        h_q = c1.selectbox("human_queue", colas)
+        h_t = c2.selectbox("human_type", tipos)
+        h_p = c3.selectbox("human_priority", prioridades)
+        
+        # Construimos JSON
+        req_json = {
+            "ticket_id": "TKT-8951",
+            "raw_text": txt_body,
+            "human_queue": h_q,
+            "human_type": h_t,
+            "human_priority": h_p
+        }
+        
+        st.markdown('<div class="payload-box">' + json.dumps(req_json, indent=4) + '</div>', unsafe_allow_html=True)
+        
+        # Botones
+        col_b1, col_b2 = st.columns([3, 1])
+        with col_b1:
+            btn_predict = st.button("▶ POST /API/V1/PREDICT", type="primary", use_container_width=True)
+        with col_b2:
+            btn_lime = st.button("🔍 XAI (LIME)", use_container_width=True)
+
+    with col_res:
+        st.markdown('<div class="header-title">● SERVER RESPONSE</div>', unsafe_allow_html=True)
+        
+        if btn_predict:
+            start_req = time.time()
             try:
-                parsed_payload = json.loads(json_input)
-                
-                start_req = time.time()
-                response = requests.post(API_URL, json=parsed_payload, timeout=5)
+                resp = requests.post(API_URL_PREDICT, json=req_json, timeout=5)
                 req_latency = (time.time() - start_req) * 1000
-                
-                if response.status_code == 200:
-                    resp_data = response.json()
-                    st.success(f"HTTP 200 OK | Round-Trip Network: {req_latency:.1f} ms")
-                    
-                    col_m1, col_m2, col_m3 = st.columns(3)
-                    col_m1.metric("Veredicto SITOR", resp_data.get("verdict"))
-                    col_m2.metric("Softmax Math", f"{resp_data.get('softmax_confidence', 0):.3f}")
-                    col_m3.metric("Backend CPU Latency", f"{resp_data.get('latency_ms', 0):.1f} ms")
-                    
-                    st.json(resp_data)
-                    
-                elif response.status_code == 422:
-                    st.error("HTTP 422 Unprocessable Entity - Contrato violado")
-                    st.json(response.json())
+                if resp.status_code == 200:
+                    resp_data = resp.json()
+                    st.markdown('<div class="payload-box" style="border-color:#10b981;">' + json.dumps(resp_data, indent=4) + '</div>', unsafe_allow_html=True)
+                    st.session_state.last_resp = resp_data
+                    st.session_state.last_lat = req_latency
                 else:
-                    st.error(f"HTTP {response.status_code} - Fallo interno")
-                    st.text(response.text)
-                    
-            except json.JSONDecodeError:
-                st.error("Error: La sintaxis no es JSON válido.")
-            except requests.exceptions.ConnectionError:
-                st.error("Conexión rechazada.")
+                    st.markdown('<div class="payload-box" style="border-color:#ef4444;">' + resp.text + '</div>', unsafe_allow_html=True)
+            except Exception as e:
+                st.error(f"Error: {e}")
+        elif btn_lime:
+            try:
+                with st.spinner("Computando interpretabilidad LIME en servidor..."):
+                    resp = requests.post(API_URL_EXPLAIN, json=req_json, timeout=45)
+                    if resp.status_code == 200:
+                        st.session_state.lime_html = resp.json().get('lime_html_string')
+                        st.markdown('<div class="payload-box" style="border-color:#3b82f6;">LIME HTML recibido correctamente. Scroll abajo para verlo.</div>', unsafe_allow_html=True)
+                    else:
+                        st.error(resp.text)
+            except Exception as e:
+                st.error(f"Timeout LIME: {e}")
+        else:
+            st.markdown('<div class="payload-box" style="display:flex; align-items:center; justify-content:center; color:#475569;">Run a request to see the response</div>', unsafe_allow_html=True)
+            
+    st.markdown('<hr style="border-color:#1e293b; margin: 20px 0;">', unsafe_allow_html=True)
+    
+    # Métricas Inferiores
+    if 'last_resp' in st.session_state:
+        d = st.session_state.last_resp
+        cm1, cm2, cm3 = st.columns(3)
+        with cm1:
+            st.markdown(f'<div class="kpi-container"><div class="kpi-label">INFERENCE VERDICT</div><div class="kpi-value" style="font-size:1.5rem; color:{"#10b981" if d.get("verdict") == "OVERRIDE_APPROVED" else "#64748b"};">{d.get("verdict")}</div></div>', unsafe_allow_html=True)
+        with cm2:
+            st.markdown(f'<div class="kpi-container"><div class="kpi-label">SOFTMAX CONFIDENCE</div><div class="kpi-value" style="font-size:1.5rem;">{d.get("softmax_confidence", 0)*100:.2f}%</div></div>', unsafe_allow_html=True)
+        with cm3:
+            st.markdown(f'<div class="kpi-container"><div class="kpi-label">SERVER LATENCY</div><div class="kpi-value" style="font-size:1.5rem;">{st.session_state.get("last_lat", 0):.1f} ms</div></div>', unsafe_allow_html=True)
+            
+        # Refuerzo visual del cambio
+        if d.get("verdict") == "OVERRIDE_APPROVED":
+            st.markdown(f'''
+            <div class="log-row" style="margin-top: 10px; border: 1px solid #10b981; border-radius: 4px; padding: 15px;">
+                <div class="col-human">
+                    <span class="text-gray" style="font-size:0.7rem;">ORIGINAL (ERROR HUMANO)</span>
+                    <span class="text-red-strike">{req_json['human_queue']}</span>
+                    <span class="text-red-strike">{req_json['human_type']}</span>
+                    <span class="text-red-strike">{req_json['human_priority']}</span>
+                </div>
+                <div class="col-sitor">
+                    <span class="text-green" style="font-size:0.7rem;">NUEVO ENRUTAMIENTO (SITOR)</span>
+                    <span class="text-green">→ {d.get("sitor_queue")}</span>
+                    <span class="text-green">{d.get("sitor_type")}</span>
+                    <span class="text-green">{d.get("sitor_priority")}</span>
+                </div>
+            </div>
+            ''', unsafe_allow_html=True)
+        elif d.get("verdict") == "VERIFIED_MAINTAINED":
+            st.markdown('<div style="margin-top: 10px; color:#10b981; font-family:monospace;">✓ SITOR coincide con la decisión humana. No se requieren cambios.</div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div style="margin-top: 10px; color:#64748b; font-family:monospace;">↓ Confianza insuficiente (< 0.85). Se mantiene la decisión humana por seguridad.</div>', unsafe_allow_html=True)
+            
+    # Visor LIME Condicional
+    if 'lime_html' in st.session_state and st.session_state.lime_html and btn_lime:
+        st.markdown('<div class="header-title">🔍 LIME EXPLANATION RENDER</div>', unsafe_allow_html=True)
+        import streamlit.components.v1 as components
+        components.html(st.session_state.lime_html, height=400, scrolling=True)

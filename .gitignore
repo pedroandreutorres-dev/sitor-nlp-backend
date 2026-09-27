@@ -1,71 +1,56 @@
-# Entornos virtuales
+# ==============================================================================
+# SITOR - .gitignore (Configuración Oficial TFM)
+# ==============================================================================
+
+# Entornos virtuales y configuraciones locales
 .venv/
 venv/
 env/
+.env
+.env.*
+.vscode/
+.idea/
 
 # Archivos de cache y compilados de Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# Datos brutos y procesados
-data/raw/*
-!data/raw/.gitkeep
-data/processed/*.parquet
-data/features/*.npz
-data/features/*.csv
-data/gold/*.parquet
-data/resultados/*.csv
-
-# Resultados y métricas del modelo (CSV y Excel)
-metrics/*.csv
-metrics/*.xlsx
-results/*.csv
-results/*.xlsx
-results/*.parquet
-
-# Excepciones
-!data/processed/tracker_en.csv
-!data/processed/tracker_es.csv
-
-# Archivos de configuracion de entorno y secretos
-.env
-.env.*
-
-# Configuraciones de IDE y OS
-.vscode/
-.idea/
-*.swp
-*.swo
-.DS_Store
-Thumbs.db
-skills.md
-
-# Testing y Coverage
 .pytest_cache/
 htmlcov/
 .coverage
 
-# Carpetas de modelos binarios
-models/
-notebook/checkpoints/
+# Jupyter Notebooks
+.ipynb_checkpoints/
 
-# Carpetas de historico
-notebook/historico/
-docs/historico_y_borradores/
+# Datos pesados (Evitar sobrepasar el límite de 100MB de GitHub)
+data/raw/*.csv
+data/gold/*.parquet
+data/resultados/*.csv
+data/resultados/*.json
+data/outbox/*.json
+
+# Modelos binarios pesados (PyTorch / Safetensors)
+src/models/**/*.safetensors
+src/models/**/*.bin
+src/models/**/*.h5
+src/models/**/*.pt
+
+# Archivos temporales de despliegue o logs
 scratch/
+TODO*
+*.log
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
 
-# Archivos temporales de despliegue
-instrucciones_despliegue_temp.md
-specs_frontend_fase7.md
-instrucciones_backend_fase7.md
-GUION_DEFENSA_TFM.md
-PLAN_DE_EJECUCION.md
+# ==============================================================================
+# EXCEPCIONES IMPORTANTES (Se fuerza a GIT a trackearlos)
+# ==============================================================================
+!data/raw/.gitkeep
+!data/inbox/batch_operaciones_demo.json
 
-# Ignorar documentacion temporal y operativa
-/docs/*
-!/docs/assets/
-!/docs/entregas/
-
-# Experimentos de robustez
-experiments/
+# Archivos solo locales
+GUION*
+Plan_*
+docs/parametros*

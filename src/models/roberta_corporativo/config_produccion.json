@@ -1,0 +1,6 @@
+{
+    "temperatura_lbfgs": 1.2524871620348506,
+    "umbral_confianza_base": 0.95,
+    "ahorro_mensual_estimado": 351.35,
+    "aviso_legal": "Parametrizado estáticamente para minimizar roturas de SLA (Service Credit 5€)"
+}

@@ -2,98 +2,86 @@
 
 > **Proyecto de Fin de Máster (PFM)**  
 > **Máster en Data Science & IA** - *Evolve Academy*  
-> **Versión del Alcance:** v8 (Cierre de Negocio y Despliegue MLOps - Sector BPO Telco)
+> **Autor:** Pedro Andreu Torres
 
 ---
 
-## 🎯 1. Valor de Negocio y Macro-Eficiencia (Executive Summary)
+## 🛡️ 1. Valor de Negocio y Macro-Eficiencia (Executive Summary)
 
-En el sector BPO y soporte técnico de telecomunicaciones, el enrutamiento manual de incidencias en el Front Office (Nivel 1) genera cuellos de botella y falsos escalados. SITOR audita, intercepta y resuelve en tiempo real el enrutamiento de la **Tripleta Operativa (56 colas Telco)** mediante Deep Learning, bajo una regla de pasividad estricta (el modelo solo interviene ante alta certeza matemática).
+En el sector BPO y soporte técnico de telecomunicaciones, el enrutamiento manual de incidencias en el Nivel 1 genera cuellos de botella y errores bajo presión. Un error de enrutamiento (ej: enviar una avería técnica urgente a Facturación) genera un "efecto ping-pong" que retrasa la resolución, pone en riesgo el cumplimiento estricto de los **SLA (Acuerdos de Nivel de Servicio)** y erosiona drásticamente el **NPS (Net Promoter Score)** al percibir el cliente que su problema no es atendido a tiempo.
 
-### 🔹 Veredicto de Producción (Hold-Out Ciego)
-Evaluado sobre una matriz de cuarentena del 20% (3.081 tickets), **SITOR automatiza un 8.63% del tráfico del Nivel 1 garantizando una Precisión Condicionada del 83.46%**. 
+**SITOR no automatiza a ciegas, actúa como un Auditor de Calidad (Cortafuegos Operativo).**
+SITOR intercepta en tiempo real los tickets guardados por los agentes y, mediante Deep Learning, audita la decisión humana. Si detecta una discrepancia grave con alta certeza matemática, corrige la **Tripleta Operativa (56 colas)** en tiempo real, garantizando el cauce correcto y protegiendo la calidad del servicio.
 
-El sistema no busca una micro-eficiencia basada en el ahorro directo de nóminas, sino operar como un verdadero **Cortafuegos Operativo**:
-* **Prevención de Penalizaciones (SLA):** Evita el "efecto ping-pong" de tickets mal enrutados, recortando el *Mean Time to Resolve* (MTTR) y previniendo penalizaciones económicas por ruptura de contrato.
-* **Amortización de Rotación (*Attrition*):** Asimila la entropía y el exceso de error humano generados durante los picos de contratación masiva de perfiles junior.
-* **Desestrangulamiento del Nivel 2:** Limpia el *backlog* técnico de ruido administrativo, permitiendo al BPO absorber mayor volumen de negocio sin requerir nuevos FTEs.
-* **Protección del NPS:** Agilizar el cauce correcto incrementa la Tasa de Resolución al Primer Contacto (*FCR*), mitigando de forma directa el riesgo de fuga (*Churn*).
+### 📊 Veredicto de Producción (Matriz Asimétrica)
+El valor del modelo trasciende la clásica métrica de Accuracy. Se construyó bajo una **Matriz de Costes Asimétrica**, asumiendo que no todos los errores tienen el mismo impacto de negocio. Aunque el modelo RoBERTa base alcanza un ~60% de precisión global en un dataset público genérico, al imponer un **umbral estricto de seguridad de 0.85**, SITOR actúa de forma pasiva y segura (IA Honesta). Solo interviene cuando la certeza es máxima, automatizando el flujo de los tickets claros, liberando a los equipos técnicos de ruido administrativo y permitiendo a la operadora cumplir sus SLA de resolución sin necesidad de sobredimensionar la plantilla.
 
 ---
 
-## ⚙️ 2. Justificación Algorítmica y Músculo Técnico (Data Science)
+## 🧠 2. Justificación Algorítmica y Data Science
 
-El desarrollo del modelo central implicó la deconstrucción empírica de los baselines estadísticos a favor de arquitecturas basadas en atención semántica masiva.
+El desarrollo empírico descartó el ML clásico a favor de arquitecturas de atención masiva adaptadas a las exigencias de negocio:
 
-### 🔹 Bake-Off de Modelos: La Ilusión del F1
-El Machine Learning clásico (Random Forest + TF-IDF) alcanzó un F1-Macro competitivo (0.58), pero **fracasó operativamente en la calibración probabilística**. Al imponer el umbral estricto de seguridad dictado por Negocio (Softmax > 0.85), el Random Forest colapsó a un 0.00% de automatización, convirtiéndose en un pasivo. 
-
-**RoBERTa (125M de parámetros)** se despliega porque, aunque su F1 global se resiente, su arquitectura semántica genera distribuciones de probabilidad más afiladas y calibradas (menor entropía cruzada / Log-Loss de 1.75), siendo el único modelo capaz de superar el umbral de pasividad de forma segura y productivizable.
-
-### 🔹 Ingeniería en la Función de Pérdida (PyTorch)
-El dominio Telco sufre un desbalanceo extremo. Para evitar el colapso del hiperplano predictivo hacia las clases mayoritarias, no nos limitamos a instanciar el modelo base: **se sobreescribió el orquestador nativo de Hugging Face**.
-Se inyectó un tensor dinámico en CUDA (raíz cuadrada inversa de frecuencias) directamente en el cálculo de la *Cross-Entropy Loss*. Además, este tensor se recalcula estrictamente dentro de cada iteración del bucle *K-Fold* para neutralizar cualquier vulnerabilidad de *Data Leakage*.
-
-### 🔹 Auditoría de Fricción Taxonómica
-El análisis forense de la matriz de colisiones evidenció que el error residual de la red neuronal no es estocástico, sino que responde a ruido estructural (*Ground Truth Noise*) heredado del etiquetado humano de origen. Las áreas de fricción se concentran de forma sistemática en las fronteras procedimentales ambiguas (ej: la delgada línea entre 'Avería General' y 'Soporte Técnico'). El modelo no se equivoca; expone las deficiencias del negocio.
+* **RoBERTa (125M de parámetros):** Se eligió por su capacidad de entender jerga técnica (correlación semántica fuerte) frente al ruido ortográfico.
+* **Ingeniería de la Función de Pérdida (PyTorch):** Se inyectaron pesos dinámicos en la *Cross-Entropy Loss* re-calculados en cada iteración del *StratifiedGroupKFold* para combatir el desbalanceo extremo sin incurrir en Data Leakage.
+* **Calibración Térmica (L-BFGS):** La red neuronal sufría de arrogancia probabilística. Se aplicó Temperature Scaling para aplanar las probabilidades, forzando a la red a dudar y evitando que la máquina disparase correcciones erróneas.
+* **MLOps y Deriva de Datos (Data Drift):** SITOR está preparado para reciclar tripletas maestras en campañas estacionales inyectando Oversampling histórico en pipelines de re-entrenamiento.
 
 ---
 
-## 🛠️ 3. Stack Tecnológico
+## 🏗️ 3. Arquitectura de Microservicios (Stack)
+
+El sistema se despliega imitando un entorno de producción Tier-1 corporativo:
+- **Backend (FastAPI):** Expone endpoints REST (`/predict` y `/explain`). Mantiene los pesos de PyTorch en RAM mediante un lifespan manager para inferencia asíncrona de 0 latencia y ejecuta la interpretabilidad XAI en el servidor para evitar sobrecargar al cliente.
+- **Frontend (Streamlit):** Panel de mando QA multipestaña (Live Waterfall Feed & LIME Sandbox) que consume lotes JSON inyectados por el CRM y evalúa decisiones en directo.
 
 | Área | Tecnología |
 | :--- | :--- |
-| **NLP & Deep Learning** | `Hugging Face`, `PyTorch`, `RoBERTa` |
-| **Análisis de Datos**| `pandas`, `NumPy`, `Seaborn` |
-| **Aceleración Hardware** | GPUs NVIDIA (A100) |
-| **Backend API**| `FastAPI`, `Uvicorn`, `Pydantic` |
-| **Frontend UI** | `Streamlit` |
+| **NLP & Deep Learning** | Hugging Face, PyTorch, RoBERTa |
+| **Análisis de Datos**| pandas, NumPy, Scikit-Learn |
+| **Backend API**| FastAPI, Uvicorn, Pydantic, LIME |
+| **Frontend UI** | Streamlit, Requests |
 
 ---
 
 ## 📁 4. Estructura del Repositorio
 
-El pipeline garantiza la reproducibilidad completa, abarcando desde la ingesta del parquet crudo hasta la inferencia en un endpoint desacoplado.
-
 ```text
 SITOR/
 ├── data/
-│   ├── gold/                # Parquets finales purgados (56 clases Telco)
-│   └── raw/                 # Origen crudo de tickets BPO
-├── docs/                    # Manifiestos arquitectónicos y hojas de ruta
-├── notebook/                # Cuadernos Jupyter del pipeline end-to-end
-├── results/                 # Predicciones ciegas Hold-Out
-├── metrics/                 # Telemetría de K-Fold y matriz de confusión
-├── models/                  # Pesos y tokenizador de RoBERTa para producción
-├── src/                     # Código fuente de despliegue MLOps
-│   ├── api/                 # Microservicio backend (FastAPI + Pydantic)
-│   └── frontend/            # Dashboard multipestaña (Streamlit)
-├── README.md                
-└── .gitignore               
+│   ├── gold/                  # Datasets refinados
+│   ├── inbox/                 # JSONs de volcado del CRM simulado (Spooling)
+│   ├── outbox/                # JSONs procesados por la API
+│   └── raw/                   # Origen crudo de tickets
+├── docs/                      # Memoria, Propuesta, y Guion de Presentación
+├── notebook/                  # Cuadernos Jupyter del pipeline end-to-end
+│   ├── 01_Auditoria_y_Deduplicacion.ipynb
+│   ├── 02_Baselines_ML_Clasico.ipynb
+│   ├── 03_Entrenamiento_RoBERTa.ipynb
+│   ├── 04_Evaluacion_Marginal_y_ROI.ipynb
+│   └── generador_demo.ipynb   # Generador de lotes JSON y ruido adversario
+├── src/                       # Código fuente de despliegue
+│   ├── api/                   # Microservicio backend (FastAPI)
+│   ├── frontend/              # Dashboard multipestaña (Streamlit)
+│   └── models/                # Pesos de RoBERTa para producción
+└── README.md                
 ```
 
 ---
 
-## 🚀 5. Guía de Ejecución Rápida (Cómo usar SITOR)
+## 🚀 5. Guía de Ejecución Local (El Día de la Defensa)
 
-Para levantar el ecosistema completo en tu máquina local:
+Para arrancar el ecosistema en el entorno de la presentación final y evitar problemas de concurrencia de memoria con PyTorch, se ha consolidado el arranque en un orquestador único.
 
-### 1. Requisitos Previos
-Asegúrate de tener Python 3.10+ y el entorno virtual activado. Luego instala las dependencias:
-```bash
-pip install -r requirements.txt
+Simplemente haz doble clic o ejecuta en la terminal el archivo de lanzamiento:
+```cmd
+lanzar_demo.bat
 ```
 
-### 2. Levantar la API Backend (FastAPI)
-Abre una terminal en la raíz del proyecto y arranca el servidor web:
-```bash
-uvicorn src.api.main:app --reload --port 8000
-```
-La API quedará escuchando en `http://localhost:8000`. Puedes consultar la documentación interactiva (Swagger) en `http://localhost:8000/docs`.
+Este script automatizado se encarga de:
+1. Activar el entorno virtual (`.venv`).
+2. Levantar el microservicio **FastAPI** (Backend) en el puerto `8000`, inyectando el modelo y LIME en RAM.
+3. Desplegar la interfaz **Streamlit** (Frontend) en el puerto `8501` en una ventana separada.
 
-### 3. Levantar el Panel de Auditoría (Streamlit)
-Abre una **segunda terminal** (dejando la API corriendo de fondo) y ejecuta:
-```bash
-streamlit run src/frontend/app.py
-```
-Se abrirá automáticamente tu navegador en `http://localhost:8501`. Desde la pestaña "API Sandbox" podrás inyectar tickets manualmente y ver la predicción de la red neuronal en tiempo real.
+* **Pestaña 1 (Live Observability):** Escucha la carpeta `data/inbox`, inicia la inferencia del lote simulado y muestra el *waterfall* en tiempo real con las métricas BPO, trasladando los tickets a `data/outbox`.
+* **Pestaña 2 (API Sandbox):** Consola interactiva para que el tribunal pueda auditar tickets a mano, forzar errores humanos y visualizar el análisis semántico interno (XAI LIME) que SITOR realiza para tomar la decisión.
