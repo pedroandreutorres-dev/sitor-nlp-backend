@@ -69,8 +69,7 @@ SITOR/
 
 ---
 
-## 🚀 5. Guía de Ejecución Local (El Día de la Defensa)
-
+## 🚀 5. Guía de Ejecución Local
 Para arrancar el ecosistema en el entorno de la presentación final y evitar problemas de concurrencia de memoria con PyTorch, se ha consolidado el arranque en un orquestador único.
 
 Simplemente haz doble clic o ejecuta en la terminal el archivo de lanzamiento:
