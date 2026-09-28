@@ -6,6 +6,7 @@ class TicketInput(BaseModel):
     human_queue: str = Field(..., description="Cola de enrutamiento seleccionada por el nivel 1")
     human_type: str = Field(..., description="Tipo de operación seleccionada por el nivel 1")
     human_priority: str = Field(..., description="Prioridad asignada por el nivel 1")
+    custom_threshold: float = Field(0.85, description="Umbral dinámico de confianza")
 
 class TicketResponse(BaseModel):
     ticket_id: str

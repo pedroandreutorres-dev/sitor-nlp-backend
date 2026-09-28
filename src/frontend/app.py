@@ -60,9 +60,19 @@ DIR_INBOX = _project_root / "data" / "inbox"
 DIR_OUTBOX = _project_root / "data" / "outbox"
 DIR_OUTBOX.mkdir(parents=True, exist_ok=True)
 
-st.markdown('<div style="display:flex; align-items:center; gap: 15px; margin-bottom: 20px;"><h2 style="color:white; margin:0;">🛡️ SITOR</h2><span style="color:#64748b; font-size:0.9rem;">Autonomous Ticket Interception · Control Tower</span></div>', unsafe_allow_html=True)
+# Inicialización de estado crítico
+if 'threshold' not in st.session_state:
+    st.session_state.threshold = 0.85
+
+col_t1, col_t2 = st.columns([3, 1])
+with col_t1:
+    st.markdown('<div style="display:flex; align-items:center; gap: 15px; margin-bottom: 20px;"><h2 style="color:white; margin:0;">🛡️ SITOR</h2><span style="color:#64748b; font-size:0.9rem;">Autonomous Ticket Interception · Control Tower</span></div>', unsafe_allow_html=True)
+with col_t2:
+    st.session_state.threshold = st.slider("Passivity Threshold", 0.50, 0.99, st.session_state.threshold, 0.01)
 
 # Inicialización de contadores de sesión para KPIs dinámicos
+if 'threshold' not in st.session_state:
+    st.session_state.threshold = 0.85
 if 'total_procesados' not in st.session_state:
     st.session_state.total_procesados = 0
 if 'total_overrides' not in st.session_state:
@@ -89,16 +99,32 @@ with tab1:
         time_liberated_hrs = (intercepted * 120) / 3600
         
         ph_kpi1.markdown(f'<div class="kpi-container"><div class="kpi-label">TICKETS INTERCEPTED (SESSION)</div><div class="kpi-value">{intercepted}</div><div class="kpi-sub" style="color:#64748b;">Out of {st.session_state.total_procesados} processed</div></div>', unsafe_allow_html=True)
-        ph_kpi2.markdown(f'<div class="kpi-container"><div class="kpi-label">CURRENT AUTOMATION RATE</div><div class="kpi-value">{auto_rate:.1f}%</div><div class="kpi-sub" style="color:#64748b;">Live session avg</div></div>', unsafe_allow_html=True)
+        sparkline_svg = '''<svg width="60" height="20" viewBox="0 0 60 25" style="margin-left:10px;">
+            <defs>
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.4" />
+                    <stop offset="100%" style="stop-color:#10b981;stop-opacity:0.0" />
+                </linearGradient>
+            </defs>
+            <polygon points="0,25 0,15 10,12 20,14 30,8 40,10 50,4 60,2 60,25" fill="url(#grad1)" />
+            <polyline points="0,15 10,12 20,14 30,8 40,10 50,4 60,2" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+        </svg>'''
+        ph_kpi2.markdown(f'<div class="kpi-container"><div class="kpi-label">CURRENT AUTOMATION RATE</div><div class="kpi-value" style="display:flex; align-items:center;">{auto_rate:.1f}% {sparkline_svg}</div><div class="kpi-sub" style="color:#64748b;">Live session avg</div></div>', unsafe_allow_html=True)
         ph_kpi3.markdown(f'<div class="kpi-container"><div class="kpi-label">BACK-OFFICE TIME LIBERATED</div><div class="kpi-value" style="color:#10b981;">{time_liberated_hrs:.2f} hrs</div><div class="kpi-sub" style="color:#64748b;">120 s AHT delta × volume</div></div>', unsafe_allow_html=True)
-        ph_kpi4.markdown('<div class="kpi-container"><div class="kpi-label">AI PASSIVITY THRESHOLD</div><div class="kpi-value">0.85</div><div class="kpi-sub" style="color:#64748b;">Softmax min · global config</div></div>', unsafe_allow_html=True)
+        thr_pct = int(st.session_state.threshold * 100)
+        gauge_svg = f'''<svg width="24" height="24" viewBox="0 0 36 36" style="margin-left:10px;">
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1e293b" stroke-width="4" />
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10b981" stroke-width="4" stroke-dasharray="{thr_pct}, 100" />
+        </svg>'''
+        ph_kpi4.markdown(f'<div class="kpi-container"><div class="kpi-label">AI PASSIVITY THRESHOLD</div><div class="kpi-value" style="display:flex; align-items:center;">{st.session_state.threshold:.2f} {gauge_svg}</div><div class="kpi-sub" style="color:#64748b;">Live dynamic config</div></div>', unsafe_allow_html=True)
 
     archivos_inbox = list(DIR_INBOX.glob("*.json"))
     
-    # Auto-arranque si hay archivos pendientes
+    # Botón de arranque manual (Evita bloqueos no deseados al iniciar la app)
     if archivos_inbox and not st.session_state.processing_batch:
-        st.session_state.processing_batch = True
-        st.rerun()
+        if st.button("▶ INICIAR SIMULACIÓN DE INFERENCIA EN CASCADA (CRM)", type="primary", use_container_width=True):
+            st.session_state.processing_batch = True
+            st.rerun()
 
     st.markdown('<hr style="border-color:#1e293b; margin: 10px 0;">', unsafe_allow_html=True)
     
@@ -140,13 +166,17 @@ with tab1:
                     </div>
                     <div class="col-conf">
                         <div class="conf-huge-green">{conf_pct:.1f}%</div>
+                        <div style="width: 100%; background: #1e293b; height: 3px; border-radius: 2px; margin: 6px 0;">
+                            <div style="width: {conf_pct}%; background: #10b981; height: 100%; border-radius: 2px;"></div>
+                        </div>
                         <div class="text-green" style="font-size: 0.7rem;">↑ OVER THRESHOLD</div>
                     </div>
                 </div>
                 '''
             else:
-                reason_text = "⊙ Verified by SITOR (Match)" if conf_pct >= 85 else "⊙ Confidence below passivity floor"
-                conf_badge = "✓ VERIFIED" if conf_pct >= 85 else "↓ BELOW 0.85"
+                is_verified = (verdict == "VERIFIED_MAINTAINED")
+                reason_text = "✅ Verified by SITOR (Match)" if is_verified else "📉 Confidence below passivity floor"
+                conf_badge = "✅ VERIFIED" if is_verified else f"⬇ BELOW {st.session_state.threshold:.2f}"
                 html_content += f'''
                 <div class="log-row">
                     <div class="col-ticket">
@@ -165,6 +195,9 @@ with tab1:
                     </div>
                     <div class="col-conf">
                         <div class="conf-huge-gray">{conf_pct:.1f}%</div>
+                        <div style="width: 100%; background: #1e293b; height: 3px; border-radius: 2px; margin: 6px 0;">
+                            <div style="width: {conf_pct}%; background: #64748b; height: 100%; border-radius: 2px;"></div>
+                        </div>
                         <div class="text-gray" style="font-size: 0.7rem;">{conf_badge}</div>
                     </div>
                 </div>
@@ -195,7 +228,8 @@ with tab1:
                     "raw_text": texto_raw,
                     "human_queue": h_queue,
                     "human_type": h_type,
-                    "human_priority": h_priority
+                    "human_priority": h_priority,
+                    "custom_threshold": st.session_state.threshold
                 }
                 
                 try:
@@ -362,10 +396,10 @@ with tab2:
         elif d.get("verdict") == "VERIFIED_MAINTAINED":
             st.markdown('<div style="margin-top: 10px; color:#10b981; font-family:monospace;">✓ SITOR coincide con la decisión humana. No se requieren cambios.</div>', unsafe_allow_html=True)
         else:
-            st.markdown('<div style="margin-top: 10px; color:#64748b; font-family:monospace;">↓ Confianza insuficiente (< 0.85). Se mantiene la decisión humana por seguridad.</div>', unsafe_allow_html=True)
+            st.markdown('<div style="margin-top: 10px; color:#64748b; font-family:monospace;">↓ Confianza insuficiente (< {st.session_state.threshold:.2f}). Se mantiene la decisión humana por seguridad.</div>', unsafe_allow_html=True)
             
     # Visor LIME Condicional
     if 'lime_html' in st.session_state and st.session_state.lime_html and btn_lime:
         st.markdown('<div class="header-title">🔍 LIME EXPLANATION RENDER</div>', unsafe_allow_html=True)
         import streamlit.components.v1 as components
-        components.html(st.session_state.lime_html, height=400, scrolling=True)
+        components.html(st.session_state.lime_html, height=700, scrolling=True)

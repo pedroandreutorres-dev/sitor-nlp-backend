@@ -59,10 +59,13 @@ async def lifespan(app: FastAPI):
         else:
             parts = c_name.split('_')
             if len(parts) == 3:
-                q = parts[0][:8] + ".." if len(parts[0]) > 10 else parts[0]
-                short_class_names.append(f"{q}_{parts[1]}_{parts[2][:3]}")
+                # Generamos acrónimos extremos (ej: Customer Service -> CS) para que D3.js no superponga textos
+                q = "".join([w[0].upper() for w in parts[0].replace('-', ' ').split()]) if ' ' in parts[0] else parts[0][:4].upper()
+                t = "".join([w[0].upper() for w in parts[1].replace('-', ' ').split()]) if ' ' in parts[1] else parts[1][:4].upper()
+                p = parts[2].split()[0] # P1, P2, P3...
+                short_class_names.append(f"{q}_{t}_{p}")
             else:
-                short_class_names.append(c_name[:15])
+                short_class_names.append(c_name[:10].upper())
                 
     lime_explainer = LimeTextExplainer(class_names=short_class_names)
     
@@ -109,7 +112,7 @@ def predict_ticket(payload: TicketInput):
     
     latency = (time.perf_counter() - start_time) * 1000.0
     
-    if max_prob >= UMBRAL_PASIVIDAD:
+    if max_prob >= payload.custom_threshold:
         macro_label = id2label.get(predicted_class_id, "")
         
         if macro_label == "OUT_OF_SCOPE":
