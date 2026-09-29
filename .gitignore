@@ -37,7 +37,6 @@ src/models/**/*.pt
 
 # Archivos temporales de despliegue o logs
 scratch/
-TODO*
 *.log
 *.swp
 *.swo
@@ -49,8 +48,3 @@ Thumbs.db
 # ==============================================================================
 !data/raw/.gitkeep
 !data/inbox/batch_operaciones_demo.json
-
-# Archivos solo locales
-GUION*
-Plan_*
-docs/parametros*

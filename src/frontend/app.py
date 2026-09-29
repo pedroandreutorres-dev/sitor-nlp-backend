@@ -122,7 +122,7 @@ with tab1:
     
     # Botón de arranque manual (Evita bloqueos no deseados al iniciar la app)
     if archivos_inbox and not st.session_state.processing_batch:
-        if st.button("▶ INICIAR SIMULACIÓN DE INFERENCIA EN CASCADA (CRM)", type="primary", use_container_width=True):
+        if st.button("▶ Iniciar Simulación", type="primary", use_container_width=False):
             st.session_state.processing_batch = True
             st.rerun()
 
@@ -325,11 +325,7 @@ with tab2:
         st.markdown('<div class="payload-box">' + json.dumps(req_json, indent=4) + '</div>', unsafe_allow_html=True)
         
         # Botones
-        col_b1, col_b2 = st.columns([3, 1])
-        with col_b1:
-            btn_predict = st.button("▶ POST /API/V1/PREDICT", type="primary", use_container_width=True)
-        with col_b2:
-            btn_lime = st.button("🔍 XAI (LIME)", use_container_width=True)
+        btn_predict = st.button("▶ POST /API/V1/PREDICT", type="primary", use_container_width=True)
 
     with col_res:
         st.markdown('<div class="header-title">● SERVER RESPONSE</div>', unsafe_allow_html=True)
@@ -348,17 +344,6 @@ with tab2:
                     st.markdown('<div class="payload-box" style="border-color:#ef4444;">' + resp.text + '</div>', unsafe_allow_html=True)
             except Exception as e:
                 st.error(f"Error: {e}")
-        elif btn_lime:
-            try:
-                with st.spinner("Computando interpretabilidad LIME en servidor..."):
-                    resp = requests.post(API_URL_EXPLAIN, json=req_json, timeout=45)
-                    if resp.status_code == 200:
-                        st.session_state.lime_html = resp.json().get('lime_html_string')
-                        st.markdown('<div class="payload-box" style="border-color:#3b82f6;">LIME HTML recibido correctamente. Scroll abajo para verlo.</div>', unsafe_allow_html=True)
-                    else:
-                        st.error(resp.text)
-            except Exception as e:
-                st.error(f"Timeout LIME: {e}")
         else:
             st.markdown('<div class="payload-box" style="display:flex; align-items:center; justify-content:center; color:#475569;">Run a request to see the response</div>', unsafe_allow_html=True)
             
@@ -397,9 +382,3 @@ with tab2:
             st.markdown('<div style="margin-top: 10px; color:#10b981; font-family:monospace;">✓ SITOR coincide con la decisión humana. No se requieren cambios.</div>', unsafe_allow_html=True)
         else:
             st.markdown('<div style="margin-top: 10px; color:#64748b; font-family:monospace;">↓ Confianza insuficiente (< {st.session_state.threshold:.2f}). Se mantiene la decisión humana por seguridad.</div>', unsafe_allow_html=True)
-            
-    # Visor LIME Condicional
-    if 'lime_html' in st.session_state and st.session_state.lime_html and btn_lime:
-        st.markdown('<div class="header-title">🔍 LIME EXPLANATION RENDER</div>', unsafe_allow_html=True)
-        import streamlit.components.v1 as components
-        components.html(st.session_state.lime_html, height=700, scrolling=True)
