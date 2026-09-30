@@ -79,10 +79,14 @@ if 'total_overrides' not in st.session_state:
     st.session_state.total_overrides = 0
 if 'processing_batch' not in st.session_state:
     st.session_state.processing_batch = False
+if 'current_lote' not in st.session_state:
+    st.session_state.current_lote = []
+if 'current_file' not in st.session_state:
+    st.session_state.current_file = None
 if 'log_history' not in st.session_state:
     st.session_state.log_history = []
 
-tab1, tab2 = st.tabs(["Live Observability READ-ONLY", "API Sandbox INTERACTIVE"])
+tab1 = st.container()
 
 # --- PESTAÑA 1: LIVE OBSERVABILITY ---
 with tab1:
@@ -120,11 +124,18 @@ with tab1:
 
     archivos_inbox = list(DIR_INBOX.glob("*.json"))
     
-    # Botón de arranque manual (Evita bloqueos no deseados al iniciar la app)
-    if archivos_inbox and not st.session_state.processing_batch:
-        if st.button("▶ Iniciar Simulación", type="primary", use_container_width=False):
-            st.session_state.processing_batch = True
-            st.rerun()
+    # Controles de reproducción (Play/Pause)
+    if archivos_inbox or st.session_state.current_lote:
+        col_btn1, _ = st.columns([1, 4])
+        with col_btn1:
+            if not st.session_state.processing_batch:
+                if st.button("▶ Iniciar Simulación", type="primary", use_container_width=True):
+                    st.session_state.processing_batch = True
+                    st.rerun()
+            else:
+                if st.button("⏸ Pausar Simulación", type="secondary", use_container_width=True):
+                    st.session_state.processing_batch = False
+                    st.rerun()
 
     st.markdown('<hr style="border-color:#1e293b; margin: 10px 0;">', unsafe_allow_html=True)
     
@@ -208,177 +219,78 @@ with tab1:
     render_kpis()
     render_logs()
 
-    # Event Loop Spooling
-    if st.session_state.processing_batch and archivos_inbox:
-        archivo_actual = archivos_inbox[0]
-        try:
-            with open(archivo_actual, 'r', encoding='utf-8') as f:
-                lote = json.load(f)
-                
-            for item in lote:
-                raw_tripleta = item.get('target_tripleta') or 'Customer Service_Service Request_P3 - Low'
-                tripleta = raw_tripleta.split('_')
-                h_queue = tripleta[0] if len(tripleta) > 0 else "UNKNOWN"
-                h_type = tripleta[1] if len(tripleta) > 1 else "UNKNOWN"
-                h_priority = tripleta[2] if len(tripleta) > 2 else "UNKNOWN"
-                texto_raw = item.get('body', item.get('full_text', ''))
-                
-                payload = {
-                    "ticket_id": item.get('ticket_id', 'UNKNOWN'),
-                    "raw_text": texto_raw,
-                    "human_queue": h_queue,
-                    "human_type": h_type,
-                    "human_priority": h_priority,
-                    "custom_threshold": st.session_state.threshold
-                }
-                
+    # Event Loop Spooling (Asíncrono simulado por estados)
+    if st.session_state.processing_batch:
+        if not st.session_state.current_lote:
+            if archivos_inbox:
+                archivo_actual = archivos_inbox[0]
+                st.session_state.current_file = str(archivo_actual)
                 try:
-                    resp = requests.post(API_URL_PREDICT, json=payload, timeout=2)
-                    if resp.status_code == 200:
-                        data = resp.json()
-                        st.session_state.total_procesados += 1
-                        if data.get('verdict') == "OVERRIDE_APPROVED":
-                            st.session_state.total_overrides += 1
-                            
-                        st.session_state.log_history.append({
-                            'ticket_id': payload['ticket_id'],
-                            'raw_excerpt': texto_raw[:120] + "..." if len(texto_raw) > 120 else texto_raw,
-                            'h_queue': h_queue,
-                            'h_type': h_type,
-                            'h_priority': h_priority,
-                            'verdict': data.get('verdict'),
-                            'softmax_confidence': data.get('softmax_confidence'),
-                            'sitor_queue': data.get('sitor_queue'),
-                            'sitor_type': data.get('sitor_type'),
-                            'sitor_priority': data.get('sitor_priority')
-                        })
-                        if len(st.session_state.log_history) > 10:
-                            st.session_state.log_history.pop(0)
-                        
-                        # Actualizar interfaz EN VIVO
-                        render_kpis()
-                        render_logs()
-                        
+                    with open(archivo_actual, 'r', encoding='utf-8') as f:
+                        st.session_state.current_lote = json.load(f)
                 except Exception as e:
-                    st.error(f"API Error: {e}")
+                    st.error(f"JSON Error: {e}")
                     st.session_state.processing_batch = False
-                    st.stop()
-                    
-                time.sleep(0.1) # Pausa dramática para simular procesamiento en vivo sin agotar CPU visualmente
+            else:
+                st.session_state.processing_batch = False
+                st.rerun()
                 
-            shutil.move(str(archivo_actual), str(DIR_OUTBOX / archivo_actual.name))
-            st.session_state.processing_batch = False
-            st.rerun()
+        if st.session_state.current_lote:
+            item = st.session_state.current_lote.pop(0)
+            raw_tripleta = item.get('target_tripleta') or 'Customer Service_Service Request_P3 - Low'
+            tripleta = raw_tripleta.split('_')
+            h_queue = tripleta[0] if len(tripleta) > 0 else "UNKNOWN"
+            h_type = tripleta[1] if len(tripleta) > 1 else "UNKNOWN"
+            h_priority = tripleta[2] if len(tripleta) > 2 else "UNKNOWN"
+            texto_raw = item.get('body', item.get('full_text', ''))
             
-        except Exception as e:
-            st.error(f"JSON Error: {e}")
-            st.session_state.processing_batch = False
-
-# --- PESTAÑA 2: API SANDBOX ---
-with tab2:
-    st.markdown('<div style="margin-bottom:20px;"></div>', unsafe_allow_html=True)
-    
-    # Grid principal 50/50
-    col_req, col_res = st.columns(2)
-    
-    with col_req:
-        st.markdown('<div class="header-title">● REQUEST PAYLOAD</div>', unsafe_allow_html=True)
-        
-        # Interfaz Humana
-        txt_body = st.text_area("Cuerpo del Ticket (raw_text)", height=100, value="URGENT — SAP SM50 ABAP dump since 06:00 CET. All batch jobs blocked. Payroll run failing for 240 employees. Need immediate escalation.")
-        
-        # Extraer tripletas reales del modelo para los selectores
-        # Ruta relativa limpia al diccionario de entrenamiento
-        mapping_path = _project_root / "src" / "models" / "roberta_corporativo" / "label_mapping.json"
-        
-        colas, tipos, prioridades = ["UNKNOWN"], ["UNKNOWN"], ["UNKNOWN"]
-        if mapping_path.exists():
-            with open(mapping_path, "r", encoding="utf-8") as f:
-                mapping = json.load(f)
-            c_set, t_set, p_set = set(), set(), set()
-            for v in mapping.values():
-                if v == "OUT_OF_SCOPE":
-                    continue
-                parts = v.split('_')
-                if len(parts) == 3:
-                    c_set.add(parts[0])
-                    t_set.add(parts[1])
-                    p_set.add(parts[2])
-            colas = sorted(list(c_set))
-            tipos = sorted(list(t_set))
-            prioridades = sorted(list(p_set))
+            payload = {
+                "ticket_id": item.get('ticket_id', 'UNKNOWN'),
+                "raw_text": texto_raw,
+                "human_queue": h_queue,
+                "human_type": h_type,
+                "human_priority": h_priority,
+                "custom_threshold": st.session_state.threshold
+            }
             
-        c1, c2, c3 = st.columns(3)
-        h_q = c1.selectbox("human_queue", colas)
-        h_t = c2.selectbox("human_type", tipos)
-        h_p = c3.selectbox("human_priority", prioridades)
-        
-        # Construimos JSON
-        req_json = {
-            "ticket_id": "TKT-8951",
-            "raw_text": txt_body,
-            "human_queue": h_q,
-            "human_type": h_t,
-            "human_priority": h_p
-        }
-        
-        st.markdown('<div class="payload-box">' + json.dumps(req_json, indent=4) + '</div>', unsafe_allow_html=True)
-        
-        # Botones
-        btn_predict = st.button("▶ POST /API/V1/PREDICT", type="primary", use_container_width=True)
-
-    with col_res:
-        st.markdown('<div class="header-title">● SERVER RESPONSE</div>', unsafe_allow_html=True)
-        
-        if btn_predict:
-            start_req = time.time()
             try:
-                resp = requests.post(API_URL_PREDICT, json=req_json, timeout=5)
-                req_latency = (time.time() - start_req) * 1000
+                resp = requests.post(API_URL_PREDICT, json=payload, timeout=2)
                 if resp.status_code == 200:
-                    resp_data = resp.json()
-                    st.markdown('<div class="payload-box" style="border-color:#10b981;">' + json.dumps(resp_data, indent=4) + '</div>', unsafe_allow_html=True)
-                    st.session_state.last_resp = resp_data
-                    st.session_state.last_lat = req_latency
-                else:
-                    st.markdown('<div class="payload-box" style="border-color:#ef4444;">' + resp.text + '</div>', unsafe_allow_html=True)
+                    data = resp.json()
+                    st.session_state.total_procesados += 1
+                    if data.get('verdict') == "OVERRIDE_APPROVED":
+                        st.session_state.total_overrides += 1
+                        
+                    st.session_state.log_history.append({
+                        'ticket_id': payload['ticket_id'],
+                        'raw_excerpt': texto_raw[:120] + "..." if len(texto_raw) > 120 else texto_raw,
+                        'h_queue': h_queue,
+                        'h_type': h_type,
+                        'h_priority': h_priority,
+                        'verdict': data.get('verdict'),
+                        'softmax_confidence': data.get('softmax_confidence'),
+                        'sitor_queue': data.get('sitor_queue'),
+                        'sitor_type': data.get('sitor_type'),
+                        'sitor_priority': data.get('sitor_priority')
+                    })
+                    if len(st.session_state.log_history) > 10:
+                        st.session_state.log_history.pop(0)
+                    
+                    # Actualizar interfaz EN VIVO
+                    render_kpis()
+                    render_logs()
+                    
             except Exception as e:
-                st.error(f"Error: {e}")
-        else:
-            st.markdown('<div class="payload-box" style="display:flex; align-items:center; justify-content:center; color:#475569;">Run a request to see the response</div>', unsafe_allow_html=True)
+                st.error(f"API Error: {e}")
+                st.session_state.processing_batch = False
+                st.stop()
+                
+            time.sleep(0.1) # Pausa dramática para simular procesamiento en vivo sin agotar CPU visualmente
             
-    st.markdown('<hr style="border-color:#1e293b; margin: 20px 0;">', unsafe_allow_html=True)
-    
-    # Métricas Inferiores
-    if 'last_resp' in st.session_state:
-        d = st.session_state.last_resp
-        cm1, cm2, cm3 = st.columns(3)
-        with cm1:
-            st.markdown(f'<div class="kpi-container"><div class="kpi-label">INFERENCE VERDICT</div><div class="kpi-value" style="font-size:1.5rem; color:{"#10b981" if d.get("verdict") == "OVERRIDE_APPROVED" else "#64748b"};">{d.get("verdict")}</div></div>', unsafe_allow_html=True)
-        with cm2:
-            st.markdown(f'<div class="kpi-container"><div class="kpi-label">SOFTMAX CONFIDENCE</div><div class="kpi-value" style="font-size:1.5rem;">{d.get("softmax_confidence", 0)*100:.2f}%</div></div>', unsafe_allow_html=True)
-        with cm3:
-            st.markdown(f'<div class="kpi-container"><div class="kpi-label">SERVER LATENCY</div><div class="kpi-value" style="font-size:1.5rem;">{st.session_state.get("last_lat", 0):.1f} ms</div></div>', unsafe_allow_html=True)
+            if not st.session_state.current_lote:
+                # Move file to outbox when done
+                if st.session_state.current_file:
+                    shutil.move(st.session_state.current_file, str(DIR_OUTBOX / Path(st.session_state.current_file).name))
+                    st.session_state.current_file = None
             
-        # Refuerzo visual del cambio
-        if d.get("verdict") == "OVERRIDE_APPROVED":
-            st.markdown(f'''
-            <div class="log-row" style="margin-top: 10px; border: 1px solid #10b981; border-radius: 4px; padding: 15px;">
-                <div class="col-human">
-                    <span class="text-gray" style="font-size:0.7rem;">ORIGINAL (ERROR HUMANO)</span>
-                    <span class="text-red-strike">{req_json['human_queue']}</span>
-                    <span class="text-red-strike">{req_json['human_type']}</span>
-                    <span class="text-red-strike">{req_json['human_priority']}</span>
-                </div>
-                <div class="col-sitor">
-                    <span class="text-green" style="font-size:0.7rem;">NUEVO ENRUTAMIENTO (SITOR)</span>
-                    <span class="text-green">→ {d.get("sitor_queue")}</span>
-                    <span class="text-green">{d.get("sitor_type")}</span>
-                    <span class="text-green">{d.get("sitor_priority")}</span>
-                </div>
-            </div>
-            ''', unsafe_allow_html=True)
-        elif d.get("verdict") == "VERIFIED_MAINTAINED":
-            st.markdown('<div style="margin-top: 10px; color:#10b981; font-family:monospace;">✓ SITOR coincide con la decisión humana. No se requieren cambios.</div>', unsafe_allow_html=True)
-        else:
-            st.markdown('<div style="margin-top: 10px; color:#64748b; font-family:monospace;">↓ Confianza insuficiente (< {st.session_state.threshold:.2f}). Se mantiene la decisión humana por seguridad.</div>', unsafe_allow_html=True)
+            st.rerun()
