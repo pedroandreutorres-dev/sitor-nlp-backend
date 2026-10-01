@@ -14,10 +14,13 @@ En el sector BPO y soporte técnico de telecomunicaciones, el enrutamiento manua
 El sistema evalúa cada ticket entrante y toma una decisión de enrutamiento sobre 56 colas operativas complejas. SITOR está diseñado con una **Matriz de Costes Asimétrica**: solo interviene y automatiza el flujo si supera un umbral de certeza matemática del **0.85**. Si la certeza es menor, delega al humano.
 
 ### 📊 Veredicto de Producción (Resultados Finales)
-* **Precisión Base:** El modelo alcanza un **87.14% de Accuracy empírico** en validación ciega (3.080 tickets).
-* **Tasa de Automatización (Volumen):** Con el umbral en 0.85, la IA automatiza con seguridad el **38.5%** de todo el volumen entrante (1.188 tickets).
-* **Precisión Operativa (IA):** En el volumen automatizado, el modelo roza la perfección con solo un **2.7%** de error residual.
-* **Retorno de Inversión (ROI):** Al derivar la larga cola ambigua al humano y absorber el grueso claro del servicio, SITOR logra una **reducción global del 31.8% en los errores operativos** de la compañía frente a un entorno 100% manual.
+* **Precisión Algorítmica (Base Multiclase):** En validación ciega (K-Fold cruzado), el modelo base arroja un **~59% de Accuracy**. En un problema de clasificación extrema con 56 colas semánticamente solapadas, este es el límite matemático del modelo forzado a predecir a ciegas.
+* **El Muro de Fuego (Umbral 0.85):** En lugar de automatizar con un 59% de acierto (inviable para negocio), se aplica calibración L-BFGS y un umbral de confianza. SITOR solo automatiza el **38.5%** del volumen entrante donde su certeza supera el 85%.
+* **Precisión Operativa (IA):** Sobre ese 38.5% de volumen automatizado, el modelo alcanza una precisión quirúrgica del **97.3%** (solo 2.7% de error residual).
+* **Retorno de Inversión (ROI) in-vitro:** Al derivar los casos dudosos al humano, las simulaciones proyectan una **reducción teórica del 31.8% en los errores operativos**. *(Nota: Tal como se recomienda en auditorías de IA, esta métrica es una proyección in-vitro que requiere ser validada con tickets reales en Shadow Mode antes de su certificación final).*
+
+### 📦 Disponibilidad de Pesos del Modelo
+Debido a las restricciones de cuota de GitHub (LFS) para archivos superiores a 100MB, los tensores finales del modelo entrenado (`model.safetensors`, ~500MB) no están incluidos directamente en el repositorio. Para reproducir el modelo, se puede ejecutar el cuaderno `03_Entrenamiento_RoBERTa.ipynb` de principio a fin, el cual generará los pesos localmente en la carpeta `src/models/roberta_corporativo_final/`.
 
 ### 🌐 Origen de los Datos (Corpus)
 Por motivos de confidencialidad corporativa y rigor académico, el entrenamiento de esta red neuronal no utiliza datos privados de clientes reales. El ecosistema ha sido modelado y validado sobre un **dataset público de Kaggle** especializado en *Customer Support* de Telecomunicaciones. Este corpus original en inglés fue sometido a un severo proceso de deduplicación, limpieza de ruido ortográfico y mapeo asimétrico cruzando 56 colas operativas complejas para simular un entorno BPO Tier-1 real.
