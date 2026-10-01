@@ -19,8 +19,13 @@ El sistema evalúa cada ticket entrante y toma una decisión de enrutamiento sob
 * **Precisión Operativa (IA):** Sobre ese 38.5% de volumen automatizado, el modelo alcanza una precisión quirúrgica del **97.3%** (solo 2.7% de error residual).
 * **Retorno de Inversión (ROI) in-vitro:** Al derivar los casos dudosos al humano, las simulaciones proyectan una **reducción teórica del 31.8% en los errores operativos**. *(Nota: Tal como se recomienda en auditorías de IA, esta métrica es una proyección in-vitro que requiere ser validada con tickets reales en Shadow Mode antes de su certificación final).*
 
-### 📦 Disponibilidad de Pesos del Modelo
-Debido a las restricciones de cuota de GitHub (LFS) para archivos superiores a 100MB, los tensores finales del modelo entrenado (`model.safetensors`, ~500MB) no están incluidos directamente en el repositorio. Para reproducir el modelo, se puede ejecutar el cuaderno `03_Entrenamiento_RoBERTa.ipynb` de principio a fin, el cual generará los pesos localmente en la carpeta `src/models/roberta_corporativo_final/`.
+### 📦 Disponibilidad de Pesos del Modelo (MLOps)
+Debido a las restricciones de cuota de GitHub (LFS) para archivos superiores a 100MB, los tensores finales del modelo entrenado (`model.safetensors`, ~500MB) no están incluidos directamente en el código fuente. Siguiendo las mejores prácticas de MLOps, el modelo se ha versionado y desplegado en el Model Hub de Hugging Face.
+
+Se puede descargar el modelo completo (pesos, configuración y tokenizador) directamente desde el repositorio:
+👉 **[https://huggingface.co/Andregon79/sitor](https://huggingface.co/Andregon79/sitor)**
+
+Alternativamente, el cuaderno `03_Entrenamiento_RoBERTa.ipynb` es 100% reproducible y regenerará los mismos pesos localmente.
 
 ### 🌐 Origen de los Datos (Corpus)
 Por motivos de confidencialidad corporativa y rigor académico, el entrenamiento de esta red neuronal no utiliza datos privados de clientes reales. El ecosistema ha sido modelado y validado sobre un **dataset público de Kaggle** especializado en *Customer Support* de Telecomunicaciones. Este corpus original en inglés fue sometido a un severo proceso de deduplicación, limpieza de ruido ortográfico y mapeo asimétrico cruzando 56 colas operativas complejas para simular un entorno BPO Tier-1 real.
